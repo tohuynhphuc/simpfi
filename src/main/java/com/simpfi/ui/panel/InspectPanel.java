@@ -250,7 +250,7 @@ public class InspectPanel extends Panel {
 
         this.add(bottomPanel, BorderLayout.SOUTH);
 
-        //select mode feature realized by mouselistener
+        //SELECT MODE feature realized by mouselistener
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
