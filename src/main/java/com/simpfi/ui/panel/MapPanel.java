@@ -91,9 +91,9 @@ public class MapPanel extends Panel {
 //		 );
 //		 // We need to take the offset before rotating
 //		
-//		 // It is rotate only the center of the map Point ( 0, 0 ) and it is constant
-//		 // If You want to rotate in other map, just translate the map to another
-//		 // Point you want
+//		 /**It is rotate only the center of the map Point ( 0, 0 ) and it is constant
+//		 * If You want to rotate in other map, just translate the map to another
+//		  Point you want*/
 //		
 //		 g2D.rotate(Math.toRadians(Settings.config.ANGLE));
 

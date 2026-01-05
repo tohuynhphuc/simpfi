@@ -143,7 +143,7 @@ public class ProgramLightsPanel extends Panel {
 
 		phaseDropDown = Dropdown.createDropdownWithLabel("Phase", getAllPhaseString(firstJunctionID), this);
 		
-		connectionDropDown = Dropdown.createDropdownWithLabel("All Connection", allStringConnection, this);
+		connectionDropDown = Dropdown.createDropdownWithLabel("Connection", allStringConnection, this);
 
 		tlJunctionDropDown.addActionListener(e -> {
 			userTrafficLightJunctionId = (String) tlJunctionDropDown.getSelectedItem();
