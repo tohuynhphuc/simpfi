@@ -82,7 +82,7 @@ public class InspectPanel extends Panel {
                 return;
             }
 
-            // new index in selectedVehicles
+            // new index in selectedVehicles and update stats in statsfield
             int vehicleIndex = getVehicleIndexFromListIndex(listIndex);
             updateStatsFields(vehicleIndex);
         });
@@ -140,6 +140,7 @@ public class InspectPanel extends Panel {
 
         buttonPanel.add(clearButton);
         buttonPanel.add(Box.createRigidArea(new Dimension(0,10)));
+
 
         groupByLabel = new Label("Group By:");
         groupByLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -249,7 +250,7 @@ public class InspectPanel extends Panel {
 
         this.add(bottomPanel, BorderLayout.SOUTH);
 
-        //select mode feature realized by mouselistener
+        //SELECT MODE feature realized by mouselistener
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -334,8 +335,7 @@ public class InspectPanel extends Panel {
      */
     private void addVehicleToInspect(Vehicle v) {
         // if vehicle already in list
-        boolean alreadyAdded = selectedVehicles.stream()
-                .anyMatch(vehicle -> vehicle.getID().equals(v.getID()));
+        boolean alreadyAdded = selectedVehicles.stream().anyMatch(vehicle -> vehicle.getID().equals(v.getID()));
 
         if (!alreadyAdded) {
             selectedVehicles.add(v);
@@ -392,8 +392,7 @@ public class InspectPanel extends Panel {
 
         switch (selected) {
             case "Vehicle Type":
-                selectedVehicles.sort((v1, v2) ->
-                        v1.getType().getId().compareTo(v2.getType().getId()));
+                selectedVehicles.sort((v1, v2) -> v1.getType().getId().compareTo(v2.getType().getId()));
                 break;
 
             case "Color":
@@ -405,8 +404,7 @@ public class InspectPanel extends Panel {
                 break;
 
             case "Speed":
-                selectedVehicles.sort((v1, v2) ->
-                        Double.compare(v1.getSpeed(), v2.getSpeed()));
+                selectedVehicles.sort((v1, v2) -> Double.compare(v1.getSpeed(), v2.getSpeed()));
                 break;
 
             case "Route":
