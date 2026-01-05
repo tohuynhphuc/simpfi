@@ -457,11 +457,11 @@ public class ProgramLightsPanel extends Panel {
 	 */
 	
 	public void actionForChangingMode() {
-		if (isAdaptiveMode) {
+		if (changingAdaptiveModeOrStaticMode.getText().equals("Change to Static Mode")) {
 			isAdaptiveMode = false;
 			changingAdaptiveModeOrStaticMode.setText("Change to Adaptive Mode");
 			modeOfTraffic.setText("Current Mode: Static Mode");
-			staticMode = new TrafficMetric(stats.getAverageSpeed(),
+			adaptiveMode = new TrafficMetric(stats.getAverageSpeed(),
 			stats.getCongestedEdges(5.0).size(),
 			calculateAverageTimeTravel(stats.getTravelTimesArray()));
 			
@@ -470,7 +470,7 @@ public class ProgramLightsPanel extends Panel {
 			isAdaptiveMode = true;
 			changingAdaptiveModeOrStaticMode.setText("Change to Static Mode");
 			modeOfTraffic.setText("Current Mode: Adaptive Mode");
-			adaptiveMode = new TrafficMetric(stats.getAverageSpeed(),
+			staticMode = new TrafficMetric(stats.getAverageSpeed(),
 			stats.getCongestedEdges(5.0).size(),
 			calculateAverageTimeTravel(stats.getTravelTimesArray()));
 		}
