@@ -36,6 +36,10 @@ import com.simpfi.ui.TextArea;
 import com.simpfi.ui.TextBox;
 import com.simpfi.ui.panel.StatisticsPanel;
 import com.simpfi.object.TrafficStatistics;
+import com.simpfi.object.TrafficMetric;
+import javax.swing.JTable;
+import javax.swing.JScrollPane;
+import java.awt.Dimension;
 
 import de.tudresden.sumo.objects.SumoTLSPhase;
 import de.tudresden.sumo.objects.SumoTLSProgram;
@@ -86,6 +90,10 @@ public class ProgramLightsPanel extends Panel {
 	
 	private StatisticsPanel sp; // This one is not use ??
 	private TrafficStatistics stats;
+
+	private TrafficMetric staticMode;
+	private TrafficMetric adaptiveMode;
+
 
 	/** Indicates whether the traffic lights are in adaptive mode. */
 	public boolean isAdaptiveMode = false;
@@ -228,6 +236,20 @@ public class ProgramLightsPanel extends Panel {
 		
 		modeOfTraffic = new Label("Current Mode: Static");
 		this.add(modeOfTraffic);
+
+		Button exportButton = new Button("Export Comparison");
+		exportButton.addActionListener(e -> {
+			if (adaptiveMode == null || staticMode == null) {
+				InformationPopUp warn = new InformationPopUp("Export Error", false);
+				warn.add(new Label("Please run BOTH Static and Adaptive modes before exporting."));
+				warn.pack();
+				warn.setLocationRelativeTo(this);
+				warn.setVisible(true);
+				return;
+			}
+			showComparison(adaptiveMode, staticMode);
+		});
+		this.add(exportButton);
 	}
 
 	// /**
@@ -435,19 +457,63 @@ public class ProgramLightsPanel extends Panel {
 	 */
 	
 	public void actionForChangingMode() {
-		
-		if (changingAdaptiveModeOrStaticMode.getText().equals("Change to Static Mode")) {
+		if (isAdaptiveMode) {
 			isAdaptiveMode = false;
 			changingAdaptiveModeOrStaticMode.setText("Change to Adaptive Mode");
 			modeOfTraffic.setText("Current Mode: Static Mode");
+			staticMode = new TrafficMetric(stats.getAverageSpeed(),
+			stats.getCongestedEdges(5.0).size(),
+			calculateAverageTimeTravel(stats.getTravelTimesArray()));
 			
 		}
 		else {
 			isAdaptiveMode = true;
 			changingAdaptiveModeOrStaticMode.setText("Change to Static Mode");
 			modeOfTraffic.setText("Current Mode: Adaptive Mode");
+			adaptiveMode = new TrafficMetric(stats.getAverageSpeed(),
+			stats.getCongestedEdges(5.0).size(),
+			calculateAverageTimeTravel(stats.getTravelTimesArray()));
 		}
 	}
+	
+	private void showComparison(TrafficMetric adaptiveMode, TrafficMetric staticMode){
+        String[] columns = {"Metric", "Static Mode", "Adpative Mode", "Difference"};
+        Object[][] data = {
+            {
+                "Average Speed (m/s)",
+                String.format("%.2f", staticMode.getAvgSpeed()),
+                String.format("%.2f", adaptiveMode.getAvgSpeed()),
+                String.format("%.2f", Math.abs(adaptiveMode.getAvgSpeed() - staticMode.getAvgSpeed()))
+            },
+
+            {
+                "Congested Edges",
+                staticMode.getTotalCongestion(),
+                adaptiveMode.getTotalCongestion(),
+                Math.abs(adaptiveMode.getTotalCongestion() - staticMode.getTotalCongestion())
+            },
+
+            {
+                "Average Time Travel",
+                String.format("%.2f", staticMode.getAvgTravelTime()),
+                String.format("%.2f", adaptiveMode.getAvgTravelTime()),
+                String.format("%.2f", Math.abs(adaptiveMode.getAvgTravelTime() - staticMode.getAvgTravelTime()))
+            }
+        };
+
+        JTable table = new JTable(data, columns);
+        table.setFillsViewportHeight(true);
+        table.setEnabled(true);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setPreferredSize(new Dimension(450, 150));
+
+        InformationPopUp dialog = new InformationPopUp("Static vs Adaptive Comparison", false);
+        dialog.add(scrollPane);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
 	
 	/**
 	 * Show remain duration in current phase of specific traffic light.
