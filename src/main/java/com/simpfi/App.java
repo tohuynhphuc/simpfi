@@ -157,6 +157,13 @@ public class App {
 						step++;
 					}
 
+					long end = System.nanoTime();
+					logger.log(Level.INFO,
+						"Simulation step time (ms): {0}",
+						(end - start) / 1_000_000.0
+					);
+
+
 					lock.lock();
 					try {
 						retrieveData(conn);
