@@ -125,11 +125,9 @@ public class Point {
 	 */
 	public Point fromWorldToMap() {
 		Point after = new Point();
-
-		// -1 here to flip the Y-axis, because Y increases downward in graphics
-		// coordinates
-		after.setX(x * Settings.config.SCALE - Settings.config.OFFSET.getX());
-		after.setY(y * Settings.config.SCALE * -1 - Settings.config.OFFSET.getY());
+		
+		after.setX(x * Settings.config.SCALE);
+		after.setY(y * Settings.config.SCALE * -1);
 
 		return after;
 	}

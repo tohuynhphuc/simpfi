@@ -86,22 +86,27 @@ public class MapPanel extends Panel {
 		 * that why, I need to get X, Y and then I rotate
 		 */
 
-//		 g2D.translate(
-//		 -Settings.config.OFFSET.getX(),
-//		 -Settings.config.OFFSET.getY()
-//		 );
-//		 // We need to take the offset before rotating
-//		
-//		 /**It is rotate only the center of the map Point ( 0, 0 ) and it is constant
-//		 * If You want to rotate in other map, just translate the map to another
-//		  Point you want*/
-//		
-//		 g2D.rotate(Math.toRadians(Settings.config.ANGLE));
+		 // We need to take the offset before rotating
+		
+		 /**It is rotate only the center of the map Point ( 0, 0 ) and it is constant
+		 * If You want to rotate in other map, just translate the map to another
+		  Point you want*/
+		
 
 
 		// Render static layer (edges, junctions) once and cache it
+//		double xCenter = 0;
+//		double yCenter = 0;
+		double dx = -Settings.config.OFFSET.getX();
+		double dy = -Settings.config.OFFSET.getY();
+//		
+//		double a = Math.toRadians(Settings.config.ANGLE);
+//		double rx = dx * Math.cos(-a) - dy * Math.sin(-a) + xCenter;
+//		double ry = dx * Math.sin(-a) + dy * Math.cos(-a) + yCenter;
+		
+		
 		if (Settings.config.getStaticLayerDirty()) {
-			renderStaticLayer();
+			renderStaticLayer(Math.toRadians(Settings.config.ANGLE), dx, dy);
 			Settings.config.setStaticLayerDirty(false);
 		}
 
@@ -110,6 +115,16 @@ public class MapPanel extends Panel {
 			g2D.drawImage(staticLayer, 0, 0, null);
 		}
 
+		/**It is rotate only the center of the map Point ( 0, 0 ) and it is constant
+		 * If You want to rotate in other map, just translate the rotation point from (0, 0) to another
+		  Point you want
+		  If u want to rotate with the point in the center of the graphic, Let me know how to find the center of the UI*/
+		g2D.translate(dx, dy);
+		g2D.rotate(Math.toRadians(Settings.config.ANGLE));
+		
+
+
+		
 		// Draw the highlighted Route in a different color (if any)
 		if (Settings.highlight.HIGHLIGHTED_ROUTE != null) {
 			for (Edge e : Settings.highlight.HIGHLIGHTED_ROUTE.getEdges()) {
@@ -574,8 +589,17 @@ public class MapPanel extends Panel {
 		// delete
 		// -Settings.config.OFFSET.getX() and getY() to the code that I commented ( In
 		// rotation logic )
-		after.setX(before.getX() * Settings.config.SCALE - Settings.config.OFFSET.getX());
-		after.setY(before.getY() * Settings.config.SCALE * -1 - Settings.config.OFFSET.getY());
+		double xCenter = 0;
+		double yCenter = 0;
+		double dx = Settings.config.OFFSET.getX() - xCenter;
+		double dy = Settings.config.OFFSET.getY() - yCenter;
+		
+		double a = Math.toRadians(Settings.config.ANGLE);
+		double rx = dx * Math.cos(-a) - dy * Math.sin(-a) + xCenter;
+		double ry = dx * Math.sin(-a) + dy * Math.cos(-a) + yCenter;
+		
+		after.setX(before.getX() * Settings.config.SCALE - rx);
+		after.setY(before.getY() * Settings.config.SCALE * -1 - ry);
 
 		return after;
 	}
@@ -607,17 +631,23 @@ public class MapPanel extends Panel {
 	 * Render static layer (edges, junctions) and cache as BufferedImage. This is
 	 * rendered once per zoom/pan operation.
 	 */
-	private void renderStaticLayer() {
-
+	private void renderStaticLayer(double angle, double dx, double dy) {
+		
 		staticLayer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		Graphics2D g2D = staticLayer.createGraphics();
+		
+		
 		g2D.setStroke(defaultStroke);
 		g2D.setColor(getBackground());
 		g2D.fillRect(0, 0, getWidth(), getHeight());
 
+		g2D.translate(dx, dy);
+		g2D.rotate(Math.toRadians(Settings.config.ANGLE));
+
+		
 		// Draw edges (static, cached)
 		for (Edge e : Settings.network.getEdges()) {
-			drawObject(g2D, e, Color.BLACK);
+			drawObject(g2D, e, Settings.config.LANE_COLOR);
 		}
 
 		// Draw junctions (static, cached)
