@@ -23,12 +23,16 @@ public class Mouse extends MouseAdapter {
 		// Calculate the distance to move
 		int dx = currentPoint.x - previousPoint.x;
 		int dy = currentPoint.y - previousPoint.y;
+		
+		double a = Math.toRadians(Settings.config.ANGLE);
+		double rx = dx * Math.cos(-a) - dy * Math.sin(-a);
+		double ry = dx * Math.sin(-a) + dy * Math.cos(-a);
 
 		if (event.isControlDown()) {
 			Settings.config.modifyAngle(dx);
 		} else {
-			Settings.config.modifyOffsetX(-dx);
-			Settings.config.modifyOffsetY(-dy);
+			Settings.config.modifyOffsetX(-rx);
+			Settings.config.modifyOffsetY(-ry);
 		}
 		previousPoint = currentPoint;
 		Settings.config.invalidateStaticLayer();

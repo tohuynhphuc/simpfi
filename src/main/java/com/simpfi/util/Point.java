@@ -124,10 +124,9 @@ public class Point {
 	 * @return the map coordinate
 	 */
 	public Point fromWorldToMap() {
-		Point after = new Point();
-		
-		after.setX(x * Settings.config.SCALE);
-		after.setY(y * Settings.config.SCALE * -1);
+		Point after = new Point();		
+		after.setX(x * Settings.config.SCALE -Settings.config.OFFSET.getX());
+		after.setY(y * Settings.config.SCALE * -1 -Settings.config.OFFSET.getY());
 
 		return after;
 	}
