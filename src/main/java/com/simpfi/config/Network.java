@@ -17,6 +17,7 @@ import com.simpfi.object.TrafficLight;
 import com.simpfi.object.VehicleType;
 import com.simpfi.util.reader.NetworkXMLReader;
 import com.simpfi.util.reader.RouteXMLReader;
+import com.simpfi.exception.InvalidNetworkConfigurationException;
 
 /**
  * Loads and stores all information related to the network from SUMO. This
@@ -68,6 +69,10 @@ public class Network {
 
 			junctions = networkXmlReader.parseJunction();
 			edges = networkXmlReader.parseEdge(junctions);
+			// Assume that at least 1 edge is visible. Other elements can be empty
+			if (edges.isEmpty()) {
+				throw new InvalidNetworkConfigurationException("Network has no edges");
+			}
 			vehicleTypes = routeXmlReader.parseVehicleType();
 			routes = routeXmlReader.parseRoute();
 			trafficLights = networkXmlReader.parseTrafficLight(junctions, edges);
@@ -76,8 +81,9 @@ public class Network {
 			buildRoadsFromEdges();
 
 			LOGGER.info("Network successfully loaded");
-		} catch (Exception e) {
+		} catch (InvalidNetworkConfigurationException e) {
 			LOGGER.log(Level.SEVERE, "Failed to load network configuration", e);
+			throw new RuntimeException("Network loading failed", e);
 		}
 	}
 

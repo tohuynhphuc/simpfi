@@ -1,8 +1,10 @@
 package com.simpfi;
 
 import java.awt.BorderLayout;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,6 +14,7 @@ import javax.swing.UIManager;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.simpfi.config.Constants;
 import com.simpfi.config.Settings;
+import com.simpfi.object.SimulationSnapshot;
 import com.simpfi.object.TrafficStatistics;
 import com.simpfi.object.Vehicle;
 import com.simpfi.sumo.wrapper.EdgeController;
@@ -96,7 +99,15 @@ public class App {
 	 */
 	private static volatile Double remaining;
 
-	public static ReentrantLock lock = new ReentrantLock();
+	//public static ReentrantLock lock = new ReentrantLock();
+	/**
+	 * Atomic reference to current simulation snapshot.
+	 * Uses copy-on-write pattern: instead of locking, new snapshots are created
+	 * and atomically swapped. Readers always see consistent, immutable data.
+	 */
+	public static AtomicReference<SimulationSnapshot> currentSnapshot = 
+		new AtomicReference<>(new SimulationSnapshot(0, new HashMap<>(), new HashMap<>()));
+
 
 	/**
 	 * Main function and starting point of application. Sets up TraCI connection,
@@ -157,12 +168,13 @@ public class App {
 						step++;
 					}
 
-					lock.lock();
-					try {
-						retrieveData(conn);
-					} finally {
-						lock.unlock();
-					}
+					// Copy-on-write: Create a new immutable snapshot of current state
+					// Snapshot is created then atomically swapped
+					SimulationSnapshot newSnapshot = createSimulationSnapshot(conn);
+					currentSnapshot.set(newSnapshot);
+
+					long end = System.nanoTime();
+					logger.log(Level.FINE, "Simulation time (ms): {0}", (end - start) / 1_000_000.0);
 
 					// ===== Data for UI =====
 					tlId = programLightPanel.getSelectedTrafficLightID();
@@ -207,7 +219,8 @@ public class App {
 						programLightPanel.updateRemainingTime(tlId, currentPhase, remaining);
 
 						if (currentStep % 10 == 0) {
-							mapPanel.updateVehicleStates(currentStep);
+							// Read immutable snapshot for UI updates - no locking needed
+							//SimulationSnapshot snapshot = currentSnapshot.get();
 							programLightPanel.showImpactOfTimingChange();
 						}
 
@@ -248,13 +261,23 @@ public class App {
 	}
 
 	/**
-	 * Retrieves updated vehicle and traffic light data and updates the UI and
-	 * controllers.
+	 * Creates an immutable snapshot of current vehicle and traffic light states.
+	 * This method is called by the simulation thread and creates a new snapshot
+	 * that is then atomically swapped into currentSnapshot (copy-on-write).
+	 * 
+	 * Key design: Creates SEPARATE Vehicle instances for the snapshot (immutable/isolated)
+	 * and the controller (mutable). This prevents the controller's mutations from affecting
+	 * the snapshot, ensuring true copy-on-write isolation.
 	 *
 	 * @param sim the connection manager
+	 * @return new immutable SimulationSnapshot with defensive copies of vehicles
 	 * @throws Exception if the connection fails
 	 */
-	private static void retrieveData(SumoConnectionManager sim) throws Exception {
+	private static SimulationSnapshot createSimulationSnapshot(SumoConnectionManager sim) throws Exception {
+		// This map will hold COPIES for the immutable snapshot (read-only by UI)
+		Map<String, Vehicle> snapshotVehicleMap = new HashMap<>();
+		
+		// For updating the controller with mutable instances
 		VehicleController.disableAllVehicles();
 
 		List<String> allVehicleIds = vehicleController.getAllVehicleIds();
@@ -271,17 +294,69 @@ public class App {
 			double distance = vehicleController.getDistance(vid);
 			List<String> route = vehicleController.getRoute(vid);
 
-			Vehicle v = new Vehicle(vid, pos, edge, type, angle, width, height, speed, maxSpeed, acceleration, distance,
-				route);
+			// Create Vehicle instance for the CONTROLLER (mutable)
+			Vehicle controllerVehicle = new Vehicle(vid, pos, edge, type, angle, width, height, speed, maxSpeed, 
+				acceleration, distance, route);
+			VehicleController.updateVehicleMap(controllerVehicle);
 
-			VehicleController.updateVehicleMap(v);
+			// Create separate Vehicle instance for the SNAPSHOT (defensive copy, isolated)
+			Vehicle snapshotVehicle = new Vehicle(vid, new Point(pos.getX(), pos.getY()), edge, type, angle, 
+				width, height, speed, maxSpeed, acceleration, distance, 
+				route != null ? new java.util.ArrayList<>(route) : null);
+			snapshotVehicle.setIsActive(true);
+			snapshotVehicleMap.put(vid, snapshotVehicle);
 		}
 
+		// Collect current traffic light states and update controllers
+		Map<String, String> trafficLightStateMap = new HashMap<>();
 		for (String tl : trafficLightController.getIDList()) {
 			String light_state = trafficLightController.getState(tl);
+			// Update controller so UI panels have the latest traffic light state
 			TrafficLightController.updateTrafficLightState(tl, light_state);
+			// Put a copy in the snapshot (traffic light state strings are immutable anyway)
+			trafficLightStateMap.put(tl, light_state);
 		}
+
+		// Create immutable snapshot with the isolated vehicle copies
+		// UI reads from this snapshot; controller reads from its own mutable instances
+		return new SimulationSnapshot(step, snapshotVehicleMap, trafficLightStateMap);
 	}
+
+	// /**
+	//  * Retrieves updated vehicle and traffic light data and updates the UI and
+	//  * controllers.
+	//  *
+	//  * @param sim the connection manager
+	//  * @throws Exception if the connection fails
+	//  */
+	// private static void retrieveData(SumoConnectionManager sim) throws Exception {
+	// 	VehicleController.disableAllVehicles();
+
+	// 	List<String> allVehicleIds = vehicleController.getAllVehicleIds();
+	// 	for (String vid : allVehicleIds) {
+	// 		Point pos = vehicleController.getPosition(vid);
+	// 		String edge = vehicleController.getRoadID(vid);
+	// 		double angle = vehicleController.getAngle(vid);
+	// 		String type = vehicleController.getTypeID(vid);
+	// 		double width = vehicleController.getWidth(vid);
+	// 		double height = vehicleController.getHeight(vid);
+	// 		double speed = vehicleController.getSpeed(vid);
+	// 		double maxSpeed = vehicleController.getMaxSpeed(vid);
+	// 		double acceleration = vehicleController.getAcceleration(vid);
+	// 		double distance = vehicleController.getDistance(vid);
+	// 		List<String> route = vehicleController.getRoute(vid);
+
+	// 		Vehicle v = new Vehicle(vid, pos, edge, type, angle, width, height, speed, maxSpeed, acceleration, distance,
+	// 			route);
+
+	// 		VehicleController.updateVehicleMap(v);
+	// 	}
+
+	// 	for (String tl : trafficLightController.getIDList()) {
+	// 		String light_state = trafficLightController.getState(tl);
+	// 		TrafficLightController.updateTrafficLightState(tl, light_state);
+	// 	}
+	// }
 
 	/**
 	 * Sets up the UI including panels and panes.

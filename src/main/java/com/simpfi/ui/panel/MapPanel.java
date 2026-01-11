@@ -29,6 +29,7 @@ import com.simpfi.object.Edge;
 import com.simpfi.object.Junction;
 import com.simpfi.object.Lane;
 import com.simpfi.object.Road;
+import com.simpfi.object.SimulationSnapshot;
 import com.simpfi.object.TrafficLight;
 import com.simpfi.object.Vehicle;
 import com.simpfi.sumo.wrapper.VehicleController;
@@ -134,29 +135,27 @@ public class MapPanel extends Panel {
 				Settings.config.HIGHLIGHTED_TRAFFIC_LIGHT_COLOR);
 		}
 
+		// Copy-on-write: Read immutable snapshot
+		// The snapshot contains a consistent view of all vehicles at this simulation step
+		SimulationSnapshot snapshot = App.currentSnapshot.get();
+		
 		for (TrafficLight tl : Settings.network.getTrafficLights()) {
 			try {
-				drawObject(g2D, tl);
+				drawObject(g2D, tl, snapshot);
 			} catch (Exception e1) {
 				logger.log(Level.SEVERE,
 					String.format("Failed to draw the traffic light (%s) in Map Panel!", tl.toString()), e1);
 			}
 		}
 
-		App.lock.lock();
-		try {
-			for (Vehicle v : VehicleController.getVehicles()) {
-				try {
-					drawObject(g2D, v);
-				} catch (Exception e) {
-					logger.log(Level.SEVERE,
-						String.format("Failed to draw the vehicle (%s) in Map Panel!", v.toString()), e);
-				}
+		for (Vehicle v : snapshot.vehicles.values()) {
+			try {
+				drawObject(g2D, v);
+			} catch (Exception e) {
+				logger.log(Level.SEVERE,
+					String.format("Failed to draw the vehicle (%s) in Map Panel!", v.toString()), e);
 			}
-		} finally {
-			App.lock.unlock();
 		}
-
 		// Avoid changing too immediately, because it keep increase the angle
 		g2D.setTransform(old);
 	}
@@ -477,9 +476,19 @@ public class MapPanel extends Panel {
 	 * @param g  the {@link Graphics2D}
 	 * @param tl the traffic light
 	 */
-	private void drawObject(Graphics2D g, TrafficLight tl) {
-		String state = tl.getTLState();
-		List<Connection> connections = tl.getConnections();
+	private void drawObject(Graphics2D g, TrafficLight tl, SimulationSnapshot s) {
+			// Copy-on-write approach replace the controller in getLiveTrafficLightStates()
+			String tlId = tl.getJunction().getId();
+			String state = null;
+			if (s != null && s.trafficLightStates != null) {
+				state = s.trafficLightStates.get(tlId);
+			}
+			// Set a default state
+			if (state == null) {
+				String defaultState = tl.getPhase()[0].getState();
+				state = defaultState;
+			}
+			List<Connection> connections = tl.getConnections();
 		// String previousLaneID = null;
 
 		for (int i = 0; i < connections.size(); i++) {
