@@ -15,6 +15,7 @@ import com.simpfi.config.Settings;
 import com.simpfi.sumo.wrapper.SumoConnectionManager;
 import com.simpfi.sumo.wrapper.VehicleController;
 import com.simpfi.export.VehicleCsvExporter;
+import com.simpfi.export.VehiclePdfExporter;
 
 import com.simpfi.ui.Button;
 import com.simpfi.ui.Panel;
@@ -181,7 +182,20 @@ public class InspectPanel extends Panel {
         buttonPanel.add(exportCsvButton);
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-
+        Button exportPdfButton = new Button("Export PDF");
+        exportPdfButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        exportPdfButton.addActionListener(e -> {
+            try {
+                VehiclePdfExporter.exportVehicles(
+                        selectedVehicles,
+                        new File("vehicle_report.pdf")
+                );
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        buttonPanel.add(exportPdfButton);
+        buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
 
         listPanel.add(buttonPanel, BorderLayout.EAST);
