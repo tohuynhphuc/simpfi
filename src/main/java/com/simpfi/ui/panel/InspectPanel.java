@@ -8,10 +8,14 @@ import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.awt.BorderLayout;
+import javax.swing.JFileChooser;
+import java.io.File;
 
 import com.simpfi.config.Settings;
 import com.simpfi.sumo.wrapper.SumoConnectionManager;
 import com.simpfi.sumo.wrapper.VehicleController;
+import com.simpfi.export.VehicleCsvExporter;
+
 import com.simpfi.ui.Button;
 import com.simpfi.ui.Panel;
 import com.simpfi.ui.ScrollPane;
@@ -19,6 +23,7 @@ import com.simpfi.ui.TextBox;
 import com.simpfi.ui.Dropdown;
 import com.simpfi.object.Vehicle;
 import com.simpfi.ui.Label;
+
 
 
 /**
@@ -154,6 +159,30 @@ public class InspectPanel extends Panel {
         buttonPanel.add(groupByDropdown);
 
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        Button exportCsvButton = new Button("Export CSV");
+        exportCsvButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        exportCsvButton.addActionListener(e -> {
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Save CSV Export");
+
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+
+                try {
+                    VehicleCsvExporter.exportVehicles(selectedVehicles, file);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        buttonPanel.add(exportCsvButton);
+        buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
+
+
 
         listPanel.add(buttonPanel, BorderLayout.EAST);
 
