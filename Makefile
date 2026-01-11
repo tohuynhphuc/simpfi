@@ -10,4 +10,5 @@ all:
     src/main/java/com/simpfi/ui/*.java \
     src/main/java/com/simpfi/ui/panel/*.java \
     src/main/java/com/simpfi/util/*.java \
-    src/main/java/com/simpfi/util/reader/*.java
+    src/main/java/com/simpfi/util/reader/*.java	\
+    src/main/java/com/simpfi/exception/*.java
