@@ -157,6 +157,13 @@ public class App {
 						step++;
 					}
 
+					long end = System.nanoTime();
+					logger.log(Level.INFO,
+						"Simulation step time (ms): {0}",
+						(end - start) / 1_000_000.0
+					);
+
+
 					lock.lock();
 					try {
 						retrieveData(conn);
@@ -312,7 +319,7 @@ public class App {
 		sidePane.addTab("Map View", mapViewPanel);
 		sidePane.addTab("Program Lights", programLightPanel);
 		sidePane.addTab("Filter", filterPanel);
-		sidePane.addTab("Inspect", inspectPanel);
+		sidePane.addTab("Inspect and Export", inspectPanel);
 
 		myFrame.add(mapPanel, BorderLayout.CENTER);
 		myFrame.add(sidePane, BorderLayout.WEST);
