@@ -100,7 +100,6 @@ public class InjectPanel extends Panel {
 
 		Button addVehicleBtn = new Button("Add vehicle");
 		addVehicleBtn.addActionListener(e -> addVehicle());
-
 		this.add(addVehicleBtn);
 	}
 
