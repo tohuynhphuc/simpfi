@@ -2,5 +2,7 @@ target/
 out/
 .classpath
 .project
-.DS_STORElogs/*.log
-logs/
+.DS_STORE
+logs/*.log
+logs/*.log.1
+logs/*.log.2
