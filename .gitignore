@@ -3,4 +3,4 @@ out/
 .classpath
 .project
 .DS_STORElogs/*.log
-logs/*.log
+logs/
