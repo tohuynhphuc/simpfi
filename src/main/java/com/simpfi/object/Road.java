@@ -5,79 +5,79 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Creates Road class, which stores a list of edges with the same base name 
- * and not included ":J" edges.
+ * Creates Road class, which stores a list of edges with the same base name and
+ * not included ":J" edges.
  */
-public class Road{
+public class Road {
 
-    /** The list of edges with the same base name */
-    List<Edge> edgesWithSameBaseName = new ArrayList<>();
+	/** The list of edges with the same base name */
+	List<Edge> edgesWithSameBaseName = new ArrayList<>();
 
-    /** The base name (id) of edges */
-    String id;
+	/** The base name (id) of edges */
+	private String id;
 
-    /** The filter flag */
+	/** The filter flag */
 	private boolean filterFlag = true;
 
-    /**
-     * Instantiates a Road.
-     * 
-     * @param eBaseId the base name which selected edges have
-     * @param edges list of edges with the same base name
-     */
-    public Road(String eBaseId, Edge[] edges){
-        id = eBaseId;
-        edgesWithSameBaseName = new ArrayList<>(Arrays.asList(edges));
-    }
+	/**
+	 * Instantiates a Road.
+	 * 
+	 * @param eBaseId the base name which selected edges have
+	 * @param edges   list of edges with the same base name
+	 */
+	public Road(String eBaseId, Edge[] edges) {
+		id = eBaseId;
+		edgesWithSameBaseName = new ArrayList<>(Arrays.asList(edges));
+	}
 
-    /**
-     * Gets the base ID of the road.
-     * 
-     * @return the base ID
-     */
-    public String getId() {
-        return id;
-    }
+	/**
+	 * Gets the base ID of the road.
+	 * 
+	 * @return the base ID
+	 */
+	public String getId() {
+		return id;
+	}
 
-    /**
-     * Sets the base ID of the road.
-     * 
-     * @param baseId the base ID to set
-     */
-    public void setId(String baseId) {
-        this.id = baseId;
-    }
+	/**
+	 * Sets the base ID of the road.
+	 * 
+	 * @param baseId the base ID to set
+	 */
+	public void setId(String baseId) {
+		this.id = baseId;
+	}
 
-    /**
-     * Gets the list of edges with the same base name.
-     * 
-     * @return the list of edges
-     */
-    public List<Edge> getEdgesWithSameBaseName() {
-        return edgesWithSameBaseName;
-    }
+	/**
+	 * Gets the list of edges with the same base name.
+	 * 
+	 * @return the list of edges
+	 */
+	public List<Edge> getEdgesWithSameBaseName() {
+		return edgesWithSameBaseName;
+	}
 
-    /**
-     * Sets the list of edges with the same base name.
-     * 
-     * @param edgesWithSameBaseName the list of edges to set
-     */
-    public void setEdgesWithSameBaseName(List<Edge> edgesWithSameBaseName) {
-        this.edgesWithSameBaseName = edgesWithSameBaseName;
-    }
+	/**
+	 * Sets the list of edges with the same base name.
+	 * 
+	 * @param edgesWithSameBaseName the list of edges to set
+	 */
+	public void setEdgesWithSameBaseName(List<Edge> edgesWithSameBaseName) {
+		this.edgesWithSameBaseName = edgesWithSameBaseName;
+	}
 
-    /**
-     * Adds new edge to {@code edgesWithSameBaseName} and returns the updated Road.
-     * 
-     * @param edge the edge to add
-     * @return the updated road
-     */
-    public Road addEdge(Edge edge){
-        this.edgesWithSameBaseName.add(edge);
-        return this;
-    }
+	/**
+	 * Adds new edge to {@code edgesWithSameBaseName} and returns the updated Road.
+	 * 
+	 * @param edge the edge to add
+	 * @return the updated road
+	 */
+	public Road addEdge(Edge edge) {
+		this.edgesWithSameBaseName.add(edge);
+		return this;
+	}
 
-    /**
+	/**
 	 * Used to search over a list of roads to find one with the matched id.
 	 * 
 	 * @param id    the id of the road to be searched for
@@ -93,12 +93,12 @@ public class Road{
 		return null;
 	}
 
-    /**
+	/**
 	 * Returns the filter flag.
 	 * 
 	 * @return the filter flag
 	 */
-	public boolean getFilterFlag(){
+	public boolean getFilterFlag() {
 		return filterFlag;
 	}
 
@@ -107,7 +107,7 @@ public class Road{
 	 * 
 	 * @param flag the state set to the filter flag
 	 */
-	public void setFilterFlag(boolean flag){
+	public void setFilterFlag(boolean flag) {
 		filterFlag = flag;
 	}
 }
