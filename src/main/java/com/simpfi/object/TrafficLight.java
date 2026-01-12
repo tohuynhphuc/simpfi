@@ -1,31 +1,41 @@
 package com.simpfi.object;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.simpfi.config.Settings;
 import com.simpfi.sumo.wrapper.TrafficLightController;
+import com.simpfi.ui.panel.MapPanel;
+import com.simpfi.util.Point;
 
 /**
  * Creates TrafficLight class.
  */
-public class TrafficLight {
+public class TrafficLight implements Drawable {
 
-	/** The type of the traffic light. Most of the traffic lights we used have 
-	 * static type, which fixed cycle time and predefined duration  */
+	/**
+	 * The type of the traffic light. Most of the traffic lights we used have static
+	 * type, which fixed cycle time and predefined duration
+	 */
 	private String type;
 
 	/** Each traffic light links to only one junction */
 	private Junction junction;
 
-
-	/** The traffic light phase, which specify the status at a given time 
-	 * of the traffic light*/
+	/**
+	 * The traffic light phase, which specify the status at a given time of the
+	 * traffic light
+	 */
 	private Phase[] phase;
 
-	/** The traffic light connections. This one shows all the connections from 
-	 * one Lane to another Lane. And each of this must specify the color of the traffic light*/
+	/**
+	 * The traffic light connections. This one shows all the connections from one
+	 * Lane to another Lane. And each of this must specify the color of the traffic
+	 * light
+	 */
 	private List<Connection> connections = new ArrayList<Connection>();
 
 	/**
@@ -74,8 +84,6 @@ public class TrafficLight {
 	public void setJunction(Junction junction) {
 		this.junction = junction;
 	}
-	
-	
 
 	/**
 	 * Returns the connections.
@@ -95,7 +103,6 @@ public class TrafficLight {
 		this.connections = connections;
 	}
 
-
 	/**
 	 * Returns the TL state.
 	 *
@@ -106,25 +113,24 @@ public class TrafficLight {
 		return TrafficLightController.getLiveTrafficLightStates().getOrDefault(this.getJunction().getId(),
 			defaultState);
 	}
-	
 
-//	/**
-//	 * Returns the connections.
-//	 *
-//	 * @return the connections
-//	 */
-//	public List<Connection> getConnections() {
-//		return connections;
-//	}
-//
-//	/**
-//	 * Sets the connections.
-//	 *
-//	 * @param connections the new connections
-//	 */
-//	public void setConnections(List<Connection> connections) {
-//		this.connections = connections;
-//	}
+	// /**
+	// * Returns the connections.
+	// *
+	// * @return the connections
+	// */
+	// public List<Connection> getConnections() {
+	// return connections;
+	// }
+	//
+	// /**
+	// * Sets the connections.
+	// *
+	// * @param connections the new connections
+	// */
+	// public void setConnections(List<Connection> connections) {
+	// this.connections = connections;
+	// }
 
 	/**
 	 * Returns the traffic light color. Traffic light signals can be one of the
@@ -143,13 +149,12 @@ public class TrafficLight {
 		default -> Color.BLACK;
 		};
 	}
-	
+
 	/**
 	 * Search Traffic Light with specific Junction ID
 	 */
-	
-	public static TrafficLight searchforTrafficLight(String id, List<TrafficLight> trafficLights)
-	{
+
+	public static TrafficLight searchforTrafficLight(String id, List<TrafficLight> trafficLights) {
 		for (int i = 0; i < trafficLights.size(); i++) {
 			if (trafficLights.get(i).getJunction().getId().equals(id)) {
 				return trafficLights.get(i);
@@ -157,8 +162,6 @@ public class TrafficLight {
 		}
 		return null;
 	}
-	
-
 
 	/**
 	 * Overrides the built-in method toString() to provide a human-readable
@@ -170,8 +173,43 @@ public class TrafficLight {
 	@Override
 	public String toString() {
 		return "TrafficLight [type=" + type + ", junction=" + junction + ", phase=" + Arrays.toString(phase)
-				+ ", connections=" + connections + "]";
+			+ ", connections=" + connections + "]";
 	}
 
+	/**
+	 * Draws a {@link TrafficLight} on the map.
+	 *
+	 * @param g  the {@link Graphics2D}
+	 * @param tl the traffic light
+	 */
+	@Override
+	public void draw(Graphics2D g, Color c) {
+		String state = getTLState();
+		List<Connection> connections = getConnections();
+		// String previousLaneID = null;
+
+		for (int i = 0; i < connections.size(); i++) {
+			Connection connect = connections.get(i);
+
+			char signal = state.charAt(i);
+			Color color = TrafficLight.getTrafficLightColor(signal);
+
+			Lane fromLane = connect.getFromLane();
+
+			Point[] shape = fromLane.getShape();
+			Point end = shape[shape.length - 1].fromWorldToMap();
+
+			// If a lane contain 2 connection -> 2 traffic light. If
+			// we care about this one again, we can comeback this code
+			// if (fromLane.getLaneId().equals(previousLaneID))
+			// {
+			// end.modifyY(4);
+			// }
+
+			// previousLaneID = fromLane.getLaneId();
+			int radius = (int) (Settings.config.TRAFFIC_LIGHT_RADIUS * Settings.config.SCALE);
+			MapPanel.drawCircle(g, end, radius, color);
+		}
+	}
 
 }

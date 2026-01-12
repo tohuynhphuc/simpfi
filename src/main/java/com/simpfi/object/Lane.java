@@ -1,15 +1,20 @@
 package com.simpfi.object;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.util.Arrays;
 import java.util.List;
 
+import com.simpfi.config.Settings;
+import com.simpfi.util.GraphicsSettings;
 import com.simpfi.util.Point;
 
 /**
  * Creates Lane class (may includes {@link de.tudresden.sumo.cmd.Lane} in the
  * future).
  */
-public class Lane extends SumoObject {
+public class Lane extends SumoObject implements Drawable {
 
 	/** The lane shape. */
 	private Point[] shape;
@@ -86,6 +91,43 @@ public class Lane extends SumoObject {
 	@Override
 	public String toString() {
 		return "Lane [laneId=" + id + ", shape=" + Arrays.toString(shape) + "]";
+	}
+
+	/**
+	 * Draws a {@link Lane} on the map
+	 *
+	 * @param g the {@link Graphics2D}
+	 * @param l the lane
+	 * @param c the color
+	 */
+	@Override
+	public void draw(Graphics2D g, Color c) {
+		GraphicsSettings oldSettings = GraphicsSettings.saveCurrentGraphicsSettings(g);
+
+		Point[] shape = getShape();
+		int size = getShapeSize();
+
+		if (size < 2) {
+			return;
+		}
+
+		int[] xPoints = new int[size];
+		int[] yPoints = new int[size];
+
+		for (int i = 0; i < size; i++) {
+			Point p = shape[i].fromWorldToMap();
+			xPoints[i] = (int) p.getX();
+			yPoints[i] = (int) p.getY();
+		}
+
+		float lineThickness = (float) (Settings.config.LANE_STROKE_SIZE * Settings.config.SCALE);
+
+		g.setColor(c);
+		g.setStroke(new BasicStroke(lineThickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+		g.drawPolyline(xPoints, yPoints, size);
+
+		GraphicsSettings.loadGraphicsSettings(g, oldSettings);
 	}
 
 }

@@ -189,7 +189,6 @@ public class App {
 
 					lastStep = currentStep;
 
-					// Event Dispatch Thread
 					long uiStart = System.nanoTime();
 
 					stats.update(currentStep);
