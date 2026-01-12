@@ -168,16 +168,39 @@ public class InspectPanel extends Panel {
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Save CSV Export");
 
+            // Vorschlagsname
+            chooser.setSelectedFile(new File("vehicle_export.csv"));
+
             if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 File file = chooser.getSelectedFile();
 
+                // .csv automatisch anhängen
+                if (!file.getName().toLowerCase().endsWith(".csv")) {
+                    file = new File(file.getAbsolutePath() + ".csv");
+                }
+
                 try {
                     VehicleCsvExporter.exportVehicles(selectedVehicles, file);
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "CSV file successfully exported.",
+                            "Export Complete",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+
                 } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "CSV export failed:\n" + ex.getMessage(),
+                            "Export Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
                     ex.printStackTrace();
                 }
             }
         });
+
 
         buttonPanel.add(exportCsvButton);
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -185,15 +208,41 @@ public class InspectPanel extends Panel {
         Button exportPdfButton = new Button("Export PDF");
         exportPdfButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         exportPdfButton.addActionListener(e -> {
-            try {
-                VehiclePdfExporter.exportVehicles(
-                        selectedVehicles,
-                        new File("vehicle_report.pdf")
-                );
-            } catch (Exception ex) {
-                ex.printStackTrace();
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Save PDF Report");
+
+            chooser.setSelectedFile(new File("vehicle_report.pdf"));
+
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+
+                if (!file.getName().toLowerCase().endsWith(".pdf")) {
+                    file = new File(file.getAbsolutePath() + ".pdf");
+                }
+
+                try {
+                    VehiclePdfExporter.exportVehicles(selectedVehicles, file);
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "PDF report successfully exported.",
+                            "Export Complete",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "PDF export failed:\n" + ex.getMessage(),
+                            "Export Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    ex.printStackTrace();
+                }
             }
         });
+
         buttonPanel.add(exportPdfButton);
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
