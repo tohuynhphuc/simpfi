@@ -9,7 +9,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.simpfi.sumo.wrapper.EdgeController;
-import com.simpfi.sumo.wrapper.SumoConnectionManager;
 import com.simpfi.sumo.wrapper.VehicleController;
 
 /**
@@ -20,13 +19,13 @@ import com.simpfi.sumo.wrapper.VehicleController;
 public class TrafficStatistics {
 
 	/** Connection to SUMO for managing vehicles. */
-	private SumoConnectionManager sumo;
+	// private SumoConnectionManager sumo;
 
 	/** Controller to access edge-related traffic data. */
-	private EdgeController ec;
+	private EdgeController edgeController;
 
 	/** Controller to access vehicle-related traffic data. */
-	private VehicleController vc;
+	private VehicleController vehicleController;
 
 	/** Stores the current speed of each vehicle by vehicle ID. */
 	private Map<String, Double> vehicleSpeeds = new HashMap<>();
@@ -53,8 +52,8 @@ public class TrafficStatistics {
 	 */
 
 	public TrafficStatistics(EdgeController ec, VehicleController vc) {
-		this.ec = ec;
-		this.vc = vc;
+		this.edgeController = ec;
+		this.vehicleController = vc;
 	}
 
 	/**
@@ -66,9 +65,9 @@ public class TrafficStatistics {
 	 */
 	public void update(int currentStep) {
 		try {
-			List<String> vehicleIDs = vc.getAllVehicleIds();
+			List<String> vehicleIDs = vehicleController.getAllVehicleIds();
 			for (String vid : vehicleIDs) {
-				double speed = vc.getSpeed(vid);
+				double speed = vehicleController.getSpeed(vid);
 				vehicleSpeeds.put(vid, speed);
 
 				if (!vehicleStartTime.containsKey(vid)) {
@@ -76,9 +75,9 @@ public class TrafficStatistics {
 				}
 			}
 
-			List<String> edgeIDs = ec.getEdgeIDs();
+			List<String> edgeIDs = edgeController.getEdgeIDs();
 			for (String eid : edgeIDs) {
-				int count = ec.getEdgeVehicleCount(eid);
+				int count = edgeController.getEdgeVehicleCount(eid);
 				edgeVehicleCount.put(eid, count);
 			}
 			checkExitedVehicles(currentStep);
@@ -94,7 +93,7 @@ public class TrafficStatistics {
 	 * @throws Exception if an error occurs while querying vehicle information
 	 */
 	private void checkExitedVehicles(int currentStep) throws Exception {
-		List<String> activeVehicles = vc.getAllVehicleIds();
+		List<String> activeVehicles = vehicleController.getAllVehicleIds();
 		Iterator<Map.Entry<String, Long>> it = vehicleStartTime.entrySet().iterator();
 		while (it.hasNext()) {
 			Map.Entry<String, Long> entry = it.next();
@@ -156,12 +155,13 @@ public class TrafficStatistics {
 	 * @param eid the edge ID
 	 * @return the average speed on that edge, or 0 if no vehicles are present
 	 */
+	@SuppressWarnings("unused")
 	private double getAverageSpeedOnEdge(String eid) {
 		double sum = 0;
 		int count = 0;
 		for (String vid : vehicleSpeeds.keySet()) {
 			try {
-				String edge = vc.getRoadID(vid);
+				String edge = vehicleController.getRoadID(vid);
 				if (edge.equals(eid)) {
 					sum += vehicleSpeeds.get(vid);
 					count++;
@@ -186,11 +186,11 @@ public class TrafficStatistics {
 		List<String> congested = new ArrayList<>();
 		for (String eid : edgeVehicleCount.keySet()) {
 			try {
-				int vehicleCount = ec.getEdgeVehicleCount(eid);
+				int vehicleCount = edgeController.getEdgeVehicleCount(eid);
 				if (vehicleCount == 0)
 					continue;
 
-				double avrSpeed = ec.getMeanSpeed(eid);
+				double avrSpeed = edgeController.getMeanSpeed(eid);
 				if (avrSpeed < speedThreshold) {
 					congested.add(eid);
 				}

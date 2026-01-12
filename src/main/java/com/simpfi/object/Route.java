@@ -7,10 +7,7 @@ import java.util.List;
  * Creates Route class (may include {@link de.tudresden.sumo.cmd.Route} in the
  * future).
  */
-public class Route {
-
-	/** The route id. */
-	private String id;
+public class Route extends SumoObject {
 
 	/** The route edges. */
 	private Edge[] edges;
@@ -24,15 +21,6 @@ public class Route {
 	public Route(String id, Edge[] edges) {
 		this.id = id;
 		this.edges = edges;
-	}
-
-	/**
-	 * Returns the id.
-	 *
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
 	}
 
 	/**

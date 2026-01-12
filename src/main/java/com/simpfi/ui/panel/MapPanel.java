@@ -4,31 +4,21 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
-
 import com.simpfi.App;
+import com.simpfi.config.Constants;
 import com.simpfi.config.Settings;
 import com.simpfi.object.Connection;
 import com.simpfi.object.Edge;
 import com.simpfi.object.Junction;
 import com.simpfi.object.Lane;
-import com.simpfi.object.Road;
 import com.simpfi.object.TrafficLight;
 import com.simpfi.object.Vehicle;
 import com.simpfi.sumo.wrapper.VehicleController;
@@ -48,11 +38,6 @@ public class MapPanel extends Panel {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-
-	/** The default stroke. */
-	private final BasicStroke defaultStroke = new BasicStroke(
-		(float) (Settings.config.NORMAL_STROKE_SIZE * Settings.config.SCALE), BasicStroke.CAP_BUTT,
-		BasicStroke.JOIN_ROUND);
 
 	/** Cached static layer (edges, junctions) */
 	private BufferedImage staticLayer = null;
@@ -78,7 +63,7 @@ public class MapPanel extends Panel {
 
 		AffineTransform old = g2D.getTransform();
 
-		g2D.setStroke(defaultStroke);
+		g2D.setStroke(Constants.DEFAULT_STROKE);
 
 		double xCenter = getWidth() / 2.0;
 		double yCenter = getHeight() / 2.0;
@@ -134,7 +119,7 @@ public class MapPanel extends Panel {
 		try {
 			for (Vehicle v : VehicleController.getVehicles()) {
 				try {
-					drawObject(g2D, v);
+					v.draw(g2D, v.getVehicleColor());
 				} catch (Exception e) {
 					logger.log(Level.SEVERE,
 						String.format("Failed to draw the vehicle (%s) in Map Panel!", v.toString()), e);
@@ -148,191 +133,6 @@ public class MapPanel extends Panel {
 		g2D.setTransform(old);
 	}
 
-	/**
-	 * Draws a {@link Vehicle} on the map.
-	 * 
-	 * @param g the {@link Graphics2D}
-	 * @param v the {@link Vehicle}
-	 */
-	private void drawObject(Graphics2D g, Vehicle v) {
-		// We don't draw inactive vehicles
-		if (v == null || !v.getIsActive()) {
-			return;
-		}
-
-		// Implement Lazy Drawing: only vehicles within the view are drawn
-		Point position = v.getPosition().fromWorldToMap();
-		// We use getWidth() here only for approximate threshold
-		// If the vehicle is long, consider changing it to length/2
-		int size = (int) (v.getWidth() * Settings.config.SCALE * Settings.config.VEHICLE_UPSCALE);
-		// Skip if vehicle is off-screen
-		if (position.getX() < -size || position.getX() > getWidth() + size || position.getY() < -size
-			|| position.getY() > getHeight() + size) {
-			return;
-		}
-
-		// We don't draw vehicles whose type is filtered out
-		if (v.getType() != null && !v.getType().getFilterFlag()) {
-			return;
-		}
-
-		// We don't draw vehicles which run on unselected roads
-		if (v.getRoadID() != null && v.getRoadID().charAt(1) != 'J') {
-			Road road = Settings.network.getRoadFromEdge(v.getEdgeFromRoadID());
-			if (road != null && !road.getFilterFlag()) {
-				return;
-			}
-		}
-
-		// We don't draw vehicles which are not with the filtered speed range
-		if (v.getSpeed() < Settings.highlight.LOWER_BOUND_LIMIT
-			|| v.getSpeed() > Settings.highlight.UPPER_BOUND_LIMIT) {
-			return;
-		}
-
-		GraphicsSettings oldSettings = saveCurrentGraphicsSettings(g);
-
-		double lengthMultipler = 1.5;
-		double narrowWidth = 0.8;
-		Point pos = v.getPosition().fromWorldToMap();
-		int width = (int) (v.getWidth() * lengthMultipler * Settings.config.SCALE * Settings.config.VEHICLE_UPSCALE);
-		int height = (int) (v.getHeight() * narrowWidth * Settings.config.SCALE * Settings.config.VEHICLE_UPSCALE);
-
-		int x = (int) pos.getX() - width / 2;
-		int y = (int) pos.getY() - height / 2;
-
-		int drawX = -width / 2;
-		int drawY = -height;
-
-		int light = height / 6;
-		int headlightFrontY = drawY + height / 6;
-
-		int bodyLeft = drawX;
-		int bodyRight = drawX + width;
-		int bodyTop = drawY;
-		int bodyBottom = drawY + height;
-		int frontOffset = (int) (height / 2.0);
-
-		Graphics2D g2 = (Graphics2D) g.create();
-		g2.setStroke(defaultStroke);
-		g2.translate(pos.getX(), pos.getY());
-		g2.rotate(Math.toRadians(v.getAngle() - 90));
-		g2.translate(0, height / 2);
-
-		// Draw vehicle body
-		g2.setColor(v.getVehicleColor());
-		g2.fillRoundRect(drawX, drawY, width, height, 8, 8);
-
-		// 4 Windows
-
-		Color windowColor = new Color(30, 30, 30, 180);
-
-		// local bounding box
-		int BX = drawX;
-		int BY = drawY;
-		int BW = width;
-		int BH = height;
-
-		int cx = BX + BW / 2; // center X
-		int cy = BY + BH / 2; // center Y
-
-		// SIZE FACTORS
-		int inward = (int) (BH * 0.18); // inward small edge length
-		int outward = (int) (BH * 0.40); // outward wide edge length
-
-		// increase factor for width
-		double widthFactor = 3.0;
-
-		// FRONT WINDOW
-		int fShortW = (int) (inward * widthFactor);
-		int fLongW = (int) (outward * widthFactor);
-		int fTopY = BY + (int) (BH * 0.05);
-		int fBotY = fTopY + (int) (BH * 0.30);
-
-		Polygon poly = new Polygon();
-		poly.addPoint(cx - fLongW / 2, fTopY); // wide top-left
-		poly.addPoint(cx + fLongW / 2, fTopY); // wide top-right
-		poly.addPoint(cx + fShortW / 2, fBotY); // short bottom-right (toward center)
-		poly.addPoint(cx - fShortW / 2, fBotY); // short bottom-left
-		g2.setColor(windowColor);
-		g2.fillPolygon(poly);
-
-		// REAR WINDOW
-		int rBotY = BY + BH - (int) (BH * 0.05);
-		int rTopY = rBotY - (int) (BH * 0.30);
-
-		poly = new Polygon();
-		poly.addPoint(cx - fShortW / 2, rTopY); // short inner top-left
-		poly.addPoint(cx + fShortW / 2, rTopY); // short inner top-right
-		poly.addPoint(cx + fLongW / 2, rBotY); // wide bottom-right
-		poly.addPoint(cx - fLongW / 2, rBotY); // wide bottom-left
-		g2.fillPolygon(poly);
-
-		// LEFT WINDOW (short edge faces center → right side)
-		int lLeftX = BX + (int) (BW * 0.02);
-		int lRightX = lLeftX + (int) (BW * 0.32); // vertical thickness
-
-		int lShortW = inward;
-		int lLongW = outward;
-
-		int lTopY = cy - (int) (BH * 0.14);
-		int lBotY = cy + (int) (BH * 0.14);
-
-		poly = new Polygon();
-		poly.addPoint(lLeftX, cy - (lLongW / 2)); // wide top-left
-		poly.addPoint(lLeftX, cy + (lLongW / 2)); // wide bottom-left
-		poly.addPoint(lRightX, cy + (lShortW / 2)); // short inward edge bottom
-		poly.addPoint(lRightX, cy - (lShortW / 2)); // short inward edge top
-		g2.fillPolygon(poly);
-
-		// RIGHT WINDOW (short edge faces center → left side)
-		int rRightX = BX + BW - (int) (BW * 0.05);
-		int rLeftX = rRightX - (int) (BW * 0.32);
-
-		poly = new Polygon();
-		poly.addPoint(rLeftX, cy - (lShortW / 2)); // short inward edge top
-		poly.addPoint(rLeftX, cy + (lShortW / 2)); // short inward edge bottom
-		poly.addPoint(rRightX, cy + (lLongW / 2)); // wide bottom-right
-		poly.addPoint(rRightX, cy - (lLongW / 2)); // wide top-right
-		g2.fillPolygon(poly);
-
-		// Draw Head Lights
-		int lightSize = (int) (height * 0.20);
-
-		int headlightX = bodyRight - lightSize - 2;
-		int headlightY1 = bodyTop + (int) (height * 0.20);
-		int headlightY2 = bodyTop + (int) (height * 0.70);
-
-		if (v.headlightsOn()) {
-			g2.setColor(new Color(255, 255, 200));
-			g2.fillOval(headlightX, headlightY1, lightSize, lightSize);
-			g2.fillOval(headlightX, headlightY2, lightSize, lightSize);
-		}
-
-		// Brake lights
-		int brakeX = bodyLeft + 2;
-		int brakeY1 = headlightY1;
-		int brakeY2 = headlightY2;
-
-		g2.setColor(v.isBraking() ? new Color(255, 60, 60) : new Color(150, 0, 0));
-		g2.fillOval(brakeX, brakeY1, lightSize, lightSize);
-		g2.fillOval(brakeX, brakeY2, lightSize, lightSize);
-
-		// Turn signals
-		g2.setColor(new Color(255, 150, 0));
-
-		if (v.isTurningLeft()) {
-			g2.fillOval(brakeX, brakeY1, lightSize, lightSize);
-			g2.fillOval(brakeX, brakeY2, lightSize, lightSize);
-		}
-		if (v.isTurningRight()) {
-			g2.fillOval(headlightX, headlightY1, lightSize, lightSize);
-			g2.fillOval(headlightX, headlightY2, lightSize, lightSize);
-		}
-		g2.dispose();
-		loadGraphicsSettings(g, oldSettings);
-	}
-
 	public void updateVehicleStates(int step) {
 		boolean blink = (step / 10) % 2 == 0; // blinking every 10 steps
 
@@ -341,7 +141,7 @@ public class MapPanel extends Panel {
 			v.setBrake(v.getSpeed() < 2);
 
 			// Headlights always on
-			v.setHeadLightsOn(true);
+			v.setHeadlightsOn(true);
 
 			// Turn signals based on nextTurn
 			v.setTurningLeft(v.getNextTurn() == Vehicle.Turn.LEFT && blink);
@@ -383,7 +183,7 @@ public class MapPanel extends Panel {
 	 * @param laneSize the lane size
 	 */
 	private void drawLaneDividers(Graphics2D g, Lane[] lanes, int laneSize) {
-		GraphicsSettings oldSettings = saveCurrentGraphicsSettings(g);
+		GraphicsSettings oldSettings = GraphicsSettings.saveCurrentGraphicsSettings(g);
 
 		/*
 		 * same amount of line and no line
@@ -419,7 +219,7 @@ public class MapPanel extends Panel {
 			}
 		}
 
-		loadGraphicsSettings(g, oldSettings);
+		GraphicsSettings.loadGraphicsSettings(g, oldSettings);
 	}
 
 	/**
@@ -430,7 +230,7 @@ public class MapPanel extends Panel {
 	 * @param c the color
 	 */
 	private void drawObject(Graphics2D g, Lane l, Color c) {
-		GraphicsSettings oldSettings = saveCurrentGraphicsSettings(g);
+		GraphicsSettings oldSettings = GraphicsSettings.saveCurrentGraphicsSettings(g);
 
 		Point[] shape = l.getShape();
 		int size = l.getShapeSize();
@@ -455,7 +255,7 @@ public class MapPanel extends Panel {
 
 		g.drawPolyline(xPoints, yPoints, size);
 
-		loadGraphicsSettings(g, oldSettings);
+		GraphicsSettings.loadGraphicsSettings(g, oldSettings);
 	}
 
 	/**
@@ -501,7 +301,7 @@ public class MapPanel extends Panel {
 	 */
 	// Draw Junction
 	private void drawObject(Graphics2D g, Junction j, Color c) {
-		GraphicsSettings oldSettings = saveCurrentGraphicsSettings(g);
+		GraphicsSettings oldSettings = GraphicsSettings.saveCurrentGraphicsSettings(g);
 
 		Point[] shape = j.getShape();
 		int size = j.getShapeSize();
@@ -525,7 +325,7 @@ public class MapPanel extends Panel {
 		g.fillPolygon(xPoints, yPoints, size);
 		g.drawPolygon(xPoints, yPoints, size);
 
-		loadGraphicsSettings(g, oldSettings);
+		GraphicsSettings.loadGraphicsSettings(g, oldSettings);
 	}
 
 	/**
@@ -537,18 +337,19 @@ public class MapPanel extends Panel {
 	 * @param color  the color
 	 */
 	private void drawCircle(Graphics2D g, Point center, int radius, Color color) {
-		GraphicsSettings oldSettings = saveCurrentGraphicsSettings(g);
+		GraphicsSettings oldSettings = GraphicsSettings.saveCurrentGraphicsSettings(g);
 		g.setColor(color);
 		g.fillOval((int) center.getX() - radius, (int) center.getY() - radius, radius * 2, radius * 2);
-		loadGraphicsSettings(g, oldSettings);
+		GraphicsSettings.loadGraphicsSettings(g, oldSettings);
 	}
 
 	/**
-	 * <<<<<<< HEAD Converts the real-world coordinate to the map coordinate.
+	 * @deprecated Converts the real-world coordinate to the map coordinate.
 	 * 
 	 * @param before the real-world coordinate
 	 * @return the map coordinate
 	 */
+	@SuppressWarnings("unused")
 	private Point translateCoords(Point before) {
 		Point after = new Point();
 
@@ -575,38 +376,14 @@ public class MapPanel extends Panel {
 	}
 
 	/**
-	 * ======= >>>>>>> 84e85451bae5391d59500f3dbb8c2a8ecc67950d Save the current
-	 * graphics settings.
-	 *
-	 * @param g the {@link Graphics2D}
-	 * @return the graphics settings
-	 */
-	private GraphicsSettings saveCurrentGraphicsSettings(Graphics2D g) {
-		return new GraphicsSettings(g.getColor(), g.getStroke(), g.getTransform());
-	}
-
-	/**
-	 * Load the graphics settings.
-	 *
-	 * @param g        the {@link Graphics2D}
-	 * @param settings the settings
-	 */
-	private void loadGraphicsSettings(Graphics2D g, GraphicsSettings settings) {
-		g.setColor(settings.getColor());
-		g.setStroke(settings.getStroke());
-		g.setTransform(settings.getTransform());
-	}
-
-	/**
 	 * Render static layer (edges, junctions) and cache as BufferedImage. This is
 	 * rendered once per zoom/pan operation.
 	 */
 	private void renderStaticLayer(double angle, double xCenter, double yCenter) {
-
 		staticLayer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		Graphics2D g2D = staticLayer.createGraphics();
 
-		g2D.setStroke(defaultStroke);
+		g2D.setStroke(Constants.DEFAULT_STROKE);
 		g2D.setColor(getBackground());
 		g2D.fillRect(0, 0, getWidth(), getHeight());
 
@@ -629,72 +406,76 @@ public class MapPanel extends Panel {
 	 * Initialize map control.
 	 */
 	public void initializeMapControl() {
-		InputMap inputMap = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		ActionMap actionMap = this.getActionMap();
-
-		// Only for US keyboard
-		KeyStroke zoomInKey = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK);
-		KeyStroke zoomOutKey = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK);
-		KeyStroke moveUpKey = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
-		KeyStroke moveDownKey = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
-		KeyStroke moveRightKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0);
-		KeyStroke moveLeftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0);
-
-		inputMap.put(zoomInKey, "zoomIn");
-		inputMap.put(zoomOutKey, "zoomOut");
-		inputMap.put(moveUpKey, "moveUp");
-		inputMap.put(moveDownKey, "moveDown");
-		inputMap.put(moveLeftKey, "moveLeft");
-		inputMap.put(moveRightKey, "moveRight");
-
-		actionMap.put("zoomIn", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Settings.config.modifyScale(Settings.config.SCALE_STEP);
-				Settings.config.invalidateStaticLayer(); // Invalidate cache when zoom changes
-			}
-		});
-
-		actionMap.put("zoomOut", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Settings.config.modifyScale(-Settings.config.SCALE_STEP);
-				Settings.config.invalidateStaticLayer(); // Invalidate cache when zoom changes
-			}
-		});
-
-		actionMap.put("moveUp", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Settings.config.modifyOffsetY(-Settings.config.OFFSET_STEP);
-				Settings.config.invalidateStaticLayer(); // Invalidate cache when pan changes
-			}
-
-		});
-
-		actionMap.put("moveDown", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Settings.config.modifyOffsetY(Settings.config.OFFSET_STEP);
-				Settings.config.invalidateStaticLayer(); // Invalidate cache when pan changes
-			}
-		});
-
-		actionMap.put("moveRight", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Settings.config.modifyOffsetX(Settings.config.OFFSET_STEP);
-				Settings.config.invalidateStaticLayer(); // Invalidate cache when pan changes
-			}
-		});
-
-		actionMap.put("moveLeft", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Settings.config.modifyOffsetX(-Settings.config.OFFSET_STEP);
-				Settings.config.invalidateStaticLayer(); // Invalidate cache when pan changes
-			}
-		});
+		// InputMap inputMap = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		// ActionMap actionMap = this.getActionMap();
+		//
+		// // Only for US keyboard
+		// KeyStroke zoomInKey = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS,
+		// InputEvent.CTRL_DOWN_MASK);
+		// KeyStroke zoomOutKey = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS,
+		// InputEvent.CTRL_DOWN_MASK);
+		// KeyStroke moveUpKey = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
+		// KeyStroke moveDownKey = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
+		// KeyStroke moveRightKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0);
+		// KeyStroke moveLeftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0);
+		//
+		// inputMap.put(zoomInKey, "zoomIn");
+		// inputMap.put(zoomOutKey, "zoomOut");
+		// inputMap.put(moveUpKey, "moveUp");
+		// inputMap.put(moveDownKey, "moveDown");
+		// inputMap.put(moveLeftKey, "moveLeft");
+		// inputMap.put(moveRightKey, "moveRight");
+		//
+		// actionMap.put("zoomIn", new AbstractAction() {
+		// @Override
+		// public void actionPerformed(ActionEvent e) {
+		// Settings.config.modifyScale(Settings.config.SCALE_STEP);
+		// Settings.config.invalidateStaticLayer(); // Invalidate cache when zoom
+		// changes
+		// }
+		// });
+		//
+		// actionMap.put("zoomOut", new AbstractAction() {
+		// @Override
+		// public void actionPerformed(ActionEvent e) {
+		// Settings.config.modifyScale(-Settings.config.SCALE_STEP);
+		// Settings.config.invalidateStaticLayer(); // Invalidate cache when zoom
+		// changes
+		// }
+		// });
+		//
+		// actionMap.put("moveUp", new AbstractAction() {
+		// @Override
+		// public void actionPerformed(ActionEvent e) {
+		// Settings.config.modifyOffsetY(-Settings.config.OFFSET_STEP);
+		// Settings.config.invalidateStaticLayer(); // Invalidate cache when pan changes
+		// }
+		//
+		// });
+		//
+		// actionMap.put("moveDown", new AbstractAction() {
+		// @Override
+		// public void actionPerformed(ActionEvent e) {
+		// Settings.config.modifyOffsetY(Settings.config.OFFSET_STEP);
+		// Settings.config.invalidateStaticLayer(); // Invalidate cache when pan changes
+		// }
+		// });
+		//
+		// actionMap.put("moveRight", new AbstractAction() {
+		// @Override
+		// public void actionPerformed(ActionEvent e) {
+		// Settings.config.modifyOffsetX(Settings.config.OFFSET_STEP);
+		// Settings.config.invalidateStaticLayer(); // Invalidate cache when pan changes
+		// }
+		// });
+		//
+		// actionMap.put("moveLeft", new AbstractAction() {
+		// @Override
+		// public void actionPerformed(ActionEvent e) {
+		// Settings.config.modifyOffsetX(-Settings.config.OFFSET_STEP);
+		// Settings.config.invalidateStaticLayer(); // Invalidate cache when pan changes
+		// }
+		// });
 
 		// TODO: Modify the angle using mouse
 

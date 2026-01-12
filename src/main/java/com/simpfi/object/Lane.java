@@ -5,16 +5,11 @@ import java.util.List;
 
 import com.simpfi.util.Point;
 
-import de.tudresden.sumo.util.SumoCommand;
-
 /**
  * Creates Lane class (may includes {@link de.tudresden.sumo.cmd.Lane} in the
  * future).
  */
-public class Lane {
-
-	/** The lane id. */
-	private String id;
+public class Lane extends SumoObject {
 
 	/** The lane shape. */
 	private Point[] shape;
@@ -25,8 +20,8 @@ public class Lane {
 	/**
 	 * Instantiates a new lane.
 	 *
-	 * @param id the lane id
-	 * @param shape  the shape
+	 * @param id    the lane id
+	 * @param shape the shape
 	 */
 	public Lane(String id, Point[] shape) {
 		this.id = id;
@@ -41,15 +36,6 @@ public class Lane {
 	 */
 	public Lane(String id) {
 		this.id = id;
-	}
-
-	/**
-	 * Returns the lane id.
-	 *
-	 * @return the lane id
-	 */
-	public String getId() {
-		return id;
 	}
 
 	/**
@@ -90,7 +76,6 @@ public class Lane {
 		}
 		return null;
 	}
-	
 
 	/**
 	 * Overrides the built-in method toString() to provide a human-readable

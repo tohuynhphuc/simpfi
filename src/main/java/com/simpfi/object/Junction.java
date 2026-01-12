@@ -10,10 +10,7 @@ import com.simpfi.util.Point;
  * Creates Junction class (may includes {@link de.tudresden.sumo.cmd.Junction}
  * in the future).
  */
-public class Junction {
-
-	/** The junction id. */
-	private String id;
+public class Junction extends SumoObject {
 
 	/** The junction type. */
 	private String type;
@@ -39,15 +36,6 @@ public class Junction {
 		this.shape = shape;
 		this.type = type;
 		this.shapeSize = this.shape.length;
-	}
-
-	/**
-	 * Returns the id.
-	 *
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
 	}
 
 	/**
@@ -111,8 +99,6 @@ public class Junction {
 		return null;
 	}
 
-
-
 	/**
 	 * Overrides the built-in method toString() to provide a human-readable
 	 * representation of Junction.
@@ -122,9 +108,7 @@ public class Junction {
 	@Override
 	public String toString() {
 		return "Junction [id=" + id + ", type=" + type + ", shape=" + Arrays.toString(shape) + ", shapeSize="
-				+ shapeSize + ", incomingLane=" + incomingLane + "]";
+			+ shapeSize + ", incomingLane=" + incomingLane + "]";
 	}
-	
-	
 
 }

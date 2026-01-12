@@ -7,10 +7,7 @@ import java.util.List;
  * Creates Edge class (may includes {@link de.tudresden.sumo.cmd.Edge} in the
  * future).
  */
-public class Edge {
-
-	/** The edge id. */
-	String id;
+public class Edge extends SumoObject {
 
 	/** The conjunction where the edge starts. */
 	Junction conjunctionFrom;
@@ -38,15 +35,6 @@ public class Edge {
 		this.conjunctionTo = to;
 		this.lanes = lanes;
 		this.lanesSize = this.lanes.length;
-	}
-
-	/**
-	 * Returns the id.
-	 *
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
 	}
 
 	/**

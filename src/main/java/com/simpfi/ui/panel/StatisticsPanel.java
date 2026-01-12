@@ -6,11 +6,11 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.Map;
-import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
@@ -25,8 +25,7 @@ import com.simpfi.object.TrafficStatistics;
 import com.simpfi.ui.Label;
 import com.simpfi.ui.Panel;
 import com.simpfi.ui.ScrollPane;
-import com.simpfi.ui.TextArea;
-import com.simpfi.ui.panel.ProgramLightsPanel;
+
 /**
  * A UI panel used for displaying simulation statistics. This class extends
  * {@link Panel}.
@@ -59,8 +58,6 @@ public class StatisticsPanel extends Panel {
 	private ChartPanel densityChartPanel;
 	/** Chart panel for displaying travel time distribution. */
 	private ChartPanel travelTimeChartPanel;
-
-
 
 	/**
 	 * Constructs a StatisticsPanel with a given {@link TrafficStatistics} object.
@@ -208,7 +205,7 @@ public class StatisticsPanel extends Panel {
 		hotspotLabel.setText("Hotspots: " + hotspots);
 
 		// Travel Time Distribution
-		if (step % 10 == 0){
+		if (step % 10 == 0) {
 			double[] times = stats.getTravelTimesArray();
 
 			// Add drawing histogram to EDT
@@ -223,7 +220,7 @@ public class StatisticsPanel extends Panel {
 				travelTimeChartPanel.repaint();
 			});
 		}
-		
+
 		// Add drawing line chart and bar chart to EDT
 		SwingUtilities.invokeLater(() -> {
 			speedChartPanel.repaint();
@@ -243,6 +240,7 @@ public class StatisticsPanel extends Panel {
 	 * @param label the label component
 	 * @return a {@link JPanel} containing both the chart and label
 	 */
+	@SuppressWarnings("unused")
 	private Panel wrapPanel(JComponent chart, Label label) {
 		Panel p = new Panel();
 		p.add(chart, BorderLayout.CENTER);

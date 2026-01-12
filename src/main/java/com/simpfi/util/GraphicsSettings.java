@@ -60,4 +60,26 @@ public class GraphicsSettings {
 		return transform;
 	}
 
+	/**
+	 * Save the current graphics settings.
+	 *
+	 * @param g the {@link Graphics2D}
+	 * @return the graphics settings
+	 */
+	public static GraphicsSettings saveCurrentGraphicsSettings(Graphics2D g) {
+		return new GraphicsSettings(g.getColor(), g.getStroke(), g.getTransform());
+	}
+
+	/**
+	 * Load the graphics settings.
+	 *
+	 * @param g        the {@link Graphics2D}
+	 * @param settings the settings
+	 */
+	public static void loadGraphicsSettings(Graphics2D g, GraphicsSettings settings) {
+		g.setColor(settings.getColor());
+		g.setStroke(settings.getStroke());
+		g.setTransform(new AffineTransform(settings.getTransform()));
+	}
+
 }

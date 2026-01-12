@@ -3,8 +3,8 @@ package com.simpfi.ui.panel;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.BoxLayout;
 import javax.swing.JColorChooser;
@@ -23,7 +23,7 @@ import com.simpfi.ui.TextBox;
 public class MapViewPanel extends Panel {
 
 	/** Logger. */
-    private static final Logger logger = Logger.getLogger(MapViewPanel.class.getName());
+	private static final Logger logger = Logger.getLogger(MapViewPanel.class.getName());
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -32,9 +32,9 @@ public class MapViewPanel extends Panel {
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		ScrollPane scrollPane = new ScrollPane();
 
-		logger.log(Level.INFO,"Generating textboxes");
+		logger.log(Level.INFO, "Generating textboxes");
 		List<TextBox> textboxes = generateTextboxes(scrollPane);
-		logger.log(Level.INFO,"Generating buttons");
+		logger.log(Level.INFO, "Generating buttons");
 		generateColorButtons(scrollPane);
 
 		Button resetButton = new Button("Reset to defaults");
@@ -66,23 +66,33 @@ public class MapViewPanel extends Panel {
 
 		TextBox simulationSpeedTextbox = createTextboxWithLabel("Simulation Speed", scrollPane,
 			Constants.DEFAULT_SIMULATION_SPEED, true, true, "How fast the simulation is running");
-		simulationSpeedTextbox.attachListener(value -> Settings.config.SIMULATION_SPEED = Double.parseDouble(value));
+		simulationSpeedTextbox.attachListener(value -> {
+			Settings.config.SIMULATION_SPEED = Double.parseDouble(value);
+		});
 		textboxes.add(simulationSpeedTextbox);
 
 		TextBox normalStrokeSizeTextbox = createTextboxWithLabel("Normal Stroke Size", scrollPane,
 			Constants.DEFAULT_NORMAL_STROKE_SIZE, true, true, "Thin stroke size for all other elements.");
-		normalStrokeSizeTextbox.attachListener(value -> Settings.config.NORMAL_STROKE_SIZE = Double.parseDouble(value));
+		normalStrokeSizeTextbox.attachListener(value -> {
+			Settings.config.NORMAL_STROKE_SIZE = Double.parseDouble(value);
+			Settings.config.invalidateStaticLayer();
+		});
 		textboxes.add(normalStrokeSizeTextbox);
 
 		TextBox laneStrokeSizeTextbox = createTextboxWithLabel("Lane Stroke Size", scrollPane,
 			Constants.DEFAULT_LANE_STROKE_SIZE, true, true, "Stroke size for drawing lanes.");
-		laneStrokeSizeTextbox.attachListener(value -> Settings.config.LANE_STROKE_SIZE = Double.parseDouble(value));
+		laneStrokeSizeTextbox.attachListener(value -> {
+			Settings.config.LANE_STROKE_SIZE = Double.parseDouble(value);
+			Settings.config.invalidateStaticLayer();
+		});
 		textboxes.add(laneStrokeSizeTextbox);
 
 		TextBox junctionStrokeSizeTextbox = createTextboxWithLabel("Junction Stroke Size", scrollPane,
 			Constants.DEFAULT_JUNCTION_STROKE_SIZE, true, true, "Stroke size for drawing junction borders.");
-		junctionStrokeSizeTextbox
-			.attachListener(value -> Settings.config.JUNCTION_STROKE_SIZE = Double.parseDouble(value));
+		junctionStrokeSizeTextbox.attachListener(value -> {
+			Settings.config.JUNCTION_STROKE_SIZE = Double.parseDouble(value);
+			Settings.config.invalidateStaticLayer();
+		});
 		textboxes.add(junctionStrokeSizeTextbox);
 
 		// TextBox scaleTextbox = createTextboxWithLabel("Scale", scrollPane,
@@ -108,35 +118,49 @@ public class MapViewPanel extends Panel {
 
 		TextBox dashLengthTextbox = createTextboxWithLabel("Dash Length", scrollPane,
 			Constants.DEFAULT_LANE_DIVIDER_DASH_LENGTH, true, true, "Dash length for drawing lane dividers.");
-		dashLengthTextbox.attachListener(value -> Settings.config.LANE_DIVIDER_DASH_LENGTH = Double.parseDouble(value));
+		dashLengthTextbox.attachListener(value -> {
+			Settings.config.LANE_DIVIDER_DASH_LENGTH = Double.parseDouble(value);
+			Settings.config.invalidateStaticLayer();
+		});
 		textboxes.add(dashLengthTextbox);
 
 		TextBox laneDividerStrokeSizeTextbox = createTextboxWithLabel("Lane Divider Stroke Size", scrollPane,
 			Constants.DEFAULT_LANE_DIVIDER_STROKE_SIZE, true, true, "Dash length for drawing lane dividers.");
-		laneDividerStrokeSizeTextbox
-			.attachListener(value -> Settings.config.LANE_DIVIDER_STROKE_SIZE = Double.parseDouble(value));
+		laneDividerStrokeSizeTextbox.attachListener(value -> {
+			Settings.config.LANE_DIVIDER_STROKE_SIZE = Double.parseDouble(value);
+			Settings.config.invalidateStaticLayer();
+		});
 		textboxes.add(laneDividerStrokeSizeTextbox);
 
 		TextBox trafficLightSizeTextbox = createTextboxWithLabel("Traffic Light Size", scrollPane,
 			Constants.DEFAULT_TRAFFIC_LIGHT_RADIUS, true, true, "How big the traffic lights are.");
-		trafficLightSizeTextbox
-			.attachListener(value -> Settings.config.TRAFFIC_LIGHT_RADIUS = Double.parseDouble(value));
+		trafficLightSizeTextbox.attachListener(value -> {
+			Settings.config.TRAFFIC_LIGHT_RADIUS = Double.parseDouble(value);
+			Settings.config.invalidateStaticLayer();
+		});
 		textboxes.add(trafficLightSizeTextbox);
 
 		TextBox vehicleUpscaleTextbox = createTextboxWithLabel("Vehicle Upscale", scrollPane,
 			Constants.DEFAULT_VEHICLE_UPSCALE, true, true,
 			"Vehicles are drawn bigger than other elements to enhance visibility.");
-		vehicleUpscaleTextbox.attachListener(value -> Settings.config.VEHICLE_UPSCALE = Double.parseDouble(value));
+		vehicleUpscaleTextbox.attachListener(value -> {
+			Settings.config.VEHICLE_UPSCALE = Double.parseDouble(value);
+			Settings.config.invalidateStaticLayer();
+		});
 		textboxes.add(vehicleUpscaleTextbox);
 
 		TextBox scaleStepTextbox = createTextboxWithLabel("Scale Step", scrollPane, Constants.DEFAULT_SCALE_STEP, true,
 			true, "When zooming with keyboard, how much of scale is changed each time.");
-		scaleStepTextbox.attachListener(value -> Settings.config.SCALE_STEP = Double.parseDouble(value));
+		scaleStepTextbox.attachListener(value -> {
+			Settings.config.SCALE_STEP = Double.parseDouble(value);
+		});
 		textboxes.add(scaleStepTextbox);
 
 		TextBox offsetStepTextbox = createTextboxWithLabel("Offset Step", scrollPane, Constants.DEFAULT_OFFSET_STEP,
 			true, true, "When moving map with arrow keys, how much of map is moved each time.");
-		offsetStepTextbox.attachListener(value -> Settings.config.OFFSET_STEP = Double.parseDouble(value));
+		offsetStepTextbox.attachListener(value -> {
+			Settings.config.OFFSET_STEP = Double.parseDouble(value);
+		});
 		textboxes.add(offsetStepTextbox);
 
 		return textboxes;
@@ -150,6 +174,7 @@ public class MapViewPanel extends Panel {
 			Color color = JColorChooser.showDialog(null, "Color of the default vehicle.",
 				Constants.DEFAULT_NORMAL_VEHICLE_COLOR);
 			Settings.config.NORMAL_VEHICLE_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(normalVehicleColorButton);
 		buttons.add(normalVehicleColorButton);
@@ -158,6 +183,7 @@ public class MapViewPanel extends Panel {
 		truckColorButton.addActionListener(e -> {
 			Color color = JColorChooser.showDialog(null, "Color of the truck.", Constants.DEFAULT_TRUCK_COLOR);
 			Settings.config.TRUCK_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(truckColorButton);
 		buttons.add(truckColorButton);
@@ -166,6 +192,7 @@ public class MapViewPanel extends Panel {
 		busColorButton.addActionListener(e -> {
 			Color color = JColorChooser.showDialog(null, "Color of the bus.", Constants.DEFAULT_BUS_COLOR);
 			Settings.config.BUS_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(busColorButton);
 		buttons.add(busColorButton);
@@ -175,6 +202,7 @@ public class MapViewPanel extends Panel {
 			Color color = JColorChooser.showDialog(null, "Color of the motorcycle.",
 				Constants.DEFAULT_MOTORCYCLE_COLOR);
 			Settings.config.MOTORCYCLE_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(motorcycleColorButton);
 		buttons.add(motorcycleColorButton);
@@ -184,6 +212,7 @@ public class MapViewPanel extends Panel {
 			Color color = JColorChooser.showDialog(null, "Color of the emergency vehicle.",
 				Constants.DEFAULT_EMERGENCY_COLOR);
 			Settings.config.EMERGENCY_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(emergencyColorButton);
 		buttons.add(emergencyColorButton);
@@ -192,6 +221,7 @@ public class MapViewPanel extends Panel {
 		normalColorButton.addActionListener(e -> {
 			Color color = JColorChooser.showDialog(null, "Default Color.", Constants.DEFAULT_NORMAL_COLOR);
 			Settings.config.NORMAL_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(normalColorButton);
 		buttons.add(normalColorButton);
@@ -201,6 +231,7 @@ public class MapViewPanel extends Panel {
 			Color color = JColorChooser.showDialog(null, "Color of the highlighted route.",
 				Constants.DEFAULT_HIGHLIGHTED_ROUTE_COLOR);
 			Settings.config.HIGHLIGHTED_ROUTE_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(highlightedRouteColorButton);
 		buttons.add(highlightedRouteColorButton);
@@ -210,6 +241,7 @@ public class MapViewPanel extends Panel {
 			Color color = JColorChooser.showDialog(null, "Color of the highlighted road filter.",
 				Constants.DEFAULT_HIGHLIGHTED_ROAD_FILTER_COLOR);
 			Settings.config.HIGHLIGHTED_ROAD_FILTER_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(highlightedRoadFilterColorButton);
 		buttons.add(highlightedRoadFilterColorButton);
@@ -219,6 +251,7 @@ public class MapViewPanel extends Panel {
 			Color color = JColorChooser.showDialog(null, "Color of the highlighted traffic light.",
 				Constants.DEFAULT_HIGHLIGHTED_TRAFFIC_LIGHT_COLOR);
 			Settings.config.HIGHLIGHTED_TRAFFIC_LIGHT_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(highlightedTrafficLightColorButton);
 		buttons.add(highlightedTrafficLightColorButton);
@@ -228,6 +261,7 @@ public class MapViewPanel extends Panel {
 			Color color = JColorChooser.showDialog(null, "Color of the highlighted connection.",
 				Constants.DEFAULT_HIGHLIGHTED_CONNECTION_COLOR);
 			Settings.config.HIGHLIGHTED_CONNECTION_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(highlightedConnectionColorButton);
 		buttons.add(highlightedConnectionColorButton);
@@ -236,6 +270,7 @@ public class MapViewPanel extends Panel {
 		laneColorButton.addActionListener(e -> {
 			Color color = JColorChooser.showDialog(null, "Color of the lane.", Constants.DEFAULT_LANE_COLOR);
 			Settings.config.LANE_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(laneColorButton);
 		buttons.add(laneColorButton);
@@ -245,6 +280,7 @@ public class MapViewPanel extends Panel {
 			Color color = JColorChooser.showDialog(null, "Color of the lane divider.",
 				Constants.DEFAULT_LANE_DIVIDER_COLOR);
 			Settings.config.LANE_DIVIDER_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(laneDividerColorButton);
 		buttons.add(laneDividerColorButton);
@@ -253,6 +289,7 @@ public class MapViewPanel extends Panel {
 		junctionColorButton.addActionListener(e -> {
 			Color color = JColorChooser.showDialog(null, "Color of the junction.", Constants.DEFAULT_JUNCTION_COLOR);
 			Settings.config.JUNCTION_COLOR = color;
+			Settings.config.invalidateStaticLayer();
 		});
 		scrollPane.addItem(junctionColorButton);
 		buttons.add(junctionColorButton);

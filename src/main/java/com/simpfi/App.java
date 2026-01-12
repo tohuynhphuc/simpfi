@@ -107,7 +107,7 @@ public class App {
 	public static void main(String[] args) {
 		logger.log(Level.INFO, "Application started");
 
-		//=======Event Dispatch Thread========
+		// =======Event Dispatch Thread========
 		SwingUtilities.invokeLater(() -> {
 			try {
 				SumoConnectionManager connection = establishConnection();
@@ -120,8 +120,9 @@ public class App {
 
 				generateUI(connection, trafficStatistic);
 
-				startDataThread(trafficStatistic);
+				startDataThread(connection, trafficStatistic);
 				startSimulationThread(connection, trafficStatistic);
+				startUIThread(connection);
 
 			} catch (Exception e) {
 				logger.log(Level.SEVERE, "Failed to continue the app", e);
@@ -132,49 +133,32 @@ public class App {
 	/** Simulation Thread */
 	private static void startSimulationThread(SumoConnectionManager conn, TrafficStatistics stats) {
 		new Thread(() -> {
-			long stepMs = (long) (Settings.config.TIMESTEP * 1000);
 
 			while (true) {
+				long stepMs = (long) (Settings.config.TIMESTEP * 1000 / Settings.config.SIMULATION_SPEED);
 				long next = System.currentTimeMillis() + stepMs;
 
 				try {
 					long start = System.nanoTime();
 
-					int numberOfSteps = (int) Math.round(Settings.config.SIMULATION_SPEED);
-					numberOfSteps = numberOfSteps <= 1 ? 1 : numberOfSteps;
+					// int numberOfSteps = (int) Math.round();
+					// numberOfSteps = numberOfSteps <= 1 ? 1 : numberOfSteps;
 
-					for (int i = 0; i < numberOfSteps; i++) {
-						doStep(conn);
-						stats.update(step);
+					// for (int i = 0; i < numberOfSteps; i++) {
+					doStep(conn);
 
-						if (programLightPanel.isAdaptiveMode) {
-							trafficLightController
-								.updateTrafficLightByNumberOfVehicle(Settings.network.getTrafficLights());
-						} else {
-							trafficLightController.setDefaultTrafficLight(Settings.network.getTrafficLights());
-						}
+					// if (programLightPanel.isAdaptiveMode) {
+					// trafficLightController.updateTrafficLightByNumberOfVehicle(Settings.network.getTrafficLights());
+					// } else {
+					// trafficLightController.setDefaultTrafficLight(Settings.network.getTrafficLights());
+					// }
 
-						step++;
-					}
+					step++;
+					// }
 
 					long end = System.nanoTime();
-					logger.log(Level.INFO,
-						"Simulation step time (ms): {0}",
-						(end - start) / 1_000_000.0
-					);
-
-
-					lock.lock();
-					try {
-						retrieveData(conn);
-					} finally {
-						lock.unlock();
-					}
-
-					// ===== Data for UI =====
-					tlId = programLightPanel.getSelectedTrafficLightID();
-					currentPhase = trafficLightController.getPhase(tlId);
-					remaining = programLightPanel.showRemainingDuration(tlId, step * Settings.config.TIMESTEP);
+					logger.log(Level.INFO, "Simulation step time (ms): {0}", (end - start) / 1_000_000.0);
+					logger.log(Level.INFO, "but the step time should be: {0}", stepMs);
 
 					long sleep = next - System.currentTimeMillis();
 					if (sleep > 0)
@@ -190,7 +174,7 @@ public class App {
 	/**
 	 * Data Thread
 	 */
-	private static void startDataThread(TrafficStatistics stats) {
+	private static void startDataThread(SumoConnectionManager conn, TrafficStatistics stats) {
 		new Thread(() -> {
 			int lastStep = -1;
 
@@ -206,31 +190,71 @@ public class App {
 					lastStep = currentStep;
 
 					// Event Dispatch Thread
+					long uiStart = System.nanoTime();
+
+					stats.update(currentStep);
+
+					statisticsPanel.updatePanel(currentStep);
+
+					// ===== Data for UI =====
+					tlId = programLightPanel.getSelectedTrafficLightID();
+					try {
+						currentPhase = trafficLightController.getPhase(tlId);
+						remaining = programLightPanel.showRemainingDuration(tlId, step * Settings.config.TIMESTEP);
+					} catch (Exception e) {
+						// TODO: Print stack trace
+					}
+					programLightPanel.updateRemainingTime(tlId, currentPhase, remaining);
+
+					if (currentStep % 10 == 0) {
+						mapPanel.updateVehicleStates(currentStep);
+						programLightPanel.showImpactOfTimingChange();
+					}
+
+					lock.lock();
+					try {
+						retrieveData(conn);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+					} finally {
+						lock.unlock();
+					}
+
+					long uiEnd = System.nanoTime();
+					long threadTime = (long) ((uiEnd - uiStart) / 1_000_000.0);
+					logger.log(Level.INFO, "Data thread time (ms): {0}", threadTime);
+
+				} catch (Exception e) {
+					logger.log(Level.SEVERE, "Data Thread failed", e);
+				}
+			}
+		}, "DataThread").start();
+	}
+
+	/**
+	 * UI Thread
+	 */
+	private static void startUIThread(SumoConnectionManager conn) {
+		new Thread(() -> {
+			while (true) {
+				try {
+					// Event Dispatch Thread
 					SwingUtilities.invokeLater(() -> {
 						long uiStart = System.nanoTime();
 
-						statisticsPanel.updatePanel(currentStep);
-
-						programLightPanel.updateRemainingTime(tlId, currentPhase, remaining);
-
-						if (currentStep % 10 == 0) {
-							mapPanel.updateVehicleStates(currentStep);
-							programLightPanel.showImpactOfTimingChange();
-						}
-
 						mapPanel.repaint();
 
-						// mapPanel.paintImmediately(0, 0, mapPanel.getWidth(), mapPanel.getHeight());
 						long uiEnd = System.nanoTime();
-						logger.log(Level.FINE, "UI frame time (ms): {0}", (uiEnd - uiStart) / 1_000_000.0);
+						logger.log(Level.INFO, "\033[96mUI drawing time (ms): {0}\033[39m",
+							(uiEnd - uiStart) / 1000000.0);
 					});
 
 					Thread.sleep(33);
 				} catch (Exception e) {
-					logger.log(Level.SEVERE, "Data/UI Thread failed", e);
+					logger.log(Level.SEVERE, "UI Thread failed", e);
 				}
 			}
-		}, "DataThread").start();
+		}, "UIThread").start();
 	}
 
 	/**
@@ -306,7 +330,7 @@ public class App {
 		injectPanel = new InjectPanel(conn);
 		mapViewPanel = new MapViewPanel();
 		programLightPanel = new ProgramLightsPanel(conn);
-		programLightPanel.setStatisticsPanel(statisticsPanel);
+		// programLightPanel.setStatisticsPanel(statisticsPanel);
 		programLightPanel.setStats(stats);
 		filterPanel = new FilterPanel();
 		inspectPanel = new InspectPanel(conn, mapPanel);
