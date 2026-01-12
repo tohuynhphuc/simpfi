@@ -65,7 +65,7 @@ public class NetworkXMLReader extends XMLReader {
 				String shape = lane.getAttribute("shape");
 
 				laneArr[j] = new Lane(lane.getAttribute("id"), extractPoints(shape));
-				laneMap.put(laneArr[j].getLaneId(), laneArr[j]);
+				laneMap.put(laneArr[j].getId(), laneArr[j]);
 			}
 
 			Junction from = Junction.searchForJunction(edge.getAttribute("from"), junctions);
