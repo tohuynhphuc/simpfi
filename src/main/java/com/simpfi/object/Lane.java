@@ -14,7 +14,7 @@ import de.tudresden.sumo.util.SumoCommand;
 public class Lane {
 
 	/** The lane id. */
-	private String laneId;
+	private String id;
 
 	/** The lane shape. */
 	private Point[] shape;
@@ -25,11 +25,11 @@ public class Lane {
 	/**
 	 * Instantiates a new lane.
 	 *
-	 * @param laneId the lane id
+	 * @param id the lane id
 	 * @param shape  the shape
 	 */
-	public Lane(String laneId, Point[] shape) {
-		this.laneId = laneId;
+	public Lane(String id, Point[] shape) {
+		this.id = id;
 		this.shape = shape;
 		this.shapeSize = this.shape.length;
 	}
@@ -37,10 +37,10 @@ public class Lane {
 	/**
 	 * Instantiates a new lane.
 	 *
-	 * @param laneId the lane id
+	 * @param id the lane id
 	 */
-	public Lane(String laneId) {
-		this.laneId = laneId;
+	public Lane(String id) {
+		this.id = id;
 	}
 
 	/**
@@ -48,8 +48,8 @@ public class Lane {
 	 *
 	 * @return the lane id
 	 */
-	public String getLaneId() {
-		return laneId;
+	public String getId() {
+		return id;
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class Lane {
 		Edge edge = Edge.searchForEdge(edgeId, edges);
 		Lane[] lanes = edge.getLanes();
 		for (int i = 0; i < lanes.length; i++) {
-			if (lanes[i].getLaneId().equals(id)) {
+			if (lanes[i].getId().equals(id)) {
 				return lanes[i];
 			}
 		}
@@ -100,7 +100,7 @@ public class Lane {
 	 */
 	@Override
 	public String toString() {
-		return "Lane [laneId=" + laneId + ", shape=" + Arrays.toString(shape) + "]";
+		return "Lane [laneId=" + id + ", shape=" + Arrays.toString(shape) + "]";
 	}
 
 }

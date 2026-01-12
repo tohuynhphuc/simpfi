@@ -1,37 +1,28 @@
 package com.simpfi.object;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+public class TrafficMetric {
 
+	private double avgSpeed;
+	private int totalCongestion;
+	private double avgTravelTime;
+	private TrafficStatistics stats;
 
-import com.simpfi.object.TrafficStatistics;
+	public TrafficMetric(double avgSpeed, int tc, double att) {
+		this.avgSpeed = avgSpeed;
+		this.totalCongestion = tc;
+		this.avgTravelTime = att;
+	}
 
-public class TrafficMetric{
-    private double avgSpeed;
-    private int totalCongestion;
-    private double avgTravelTime;
-    private TrafficStatistics stats;
+	public double getAvgSpeed() {
+		return this.avgSpeed;
+	}
 
-    public TrafficMetric(double avgSpeed, int tc, double att){
-        this.avgSpeed = avgSpeed;
-        this.totalCongestion = tc;
-        this.avgTravelTime = att;
-    }
+	public int getTotalCongestion() {
+		return this.totalCongestion;
+	}
 
-    public double getAvgSpeed(){
-        return this.avgSpeed;
-    }
+	public double getAvgTravelTime() {
+		return this.avgTravelTime;
+	}
 
-    public int getTotalCongestion(){
-        return this.totalCongestion;
-    }
-
-    public double getAvgTravelTime(){
-        return this.avgTravelTime;
-    }
 }
