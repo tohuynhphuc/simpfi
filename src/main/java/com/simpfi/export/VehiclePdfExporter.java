@@ -26,8 +26,11 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.simpfi.object.Vehicle;
 
 /**
- * Generates a PDF summary report for vehicle simulation data. Includes a
- * timestamp, metrics and a speed comparison chart.
+ * <<<<<<< HEAD Generates a PDF summary report for vehicle simulation data.
+ * Includes a timestamp, metrics and a speed comparison chart. ======= Generates
+ * a PDF summary report for vehicle simulation data using iText. Includes a
+ * timestamp, metrics and a speed comparison chart. >>>>>>>
+ * be0772bd3c4e4b9d2e249fb9e0c651f148b8c3f4
  */
 public class VehiclePdfExporter {
 
@@ -84,14 +87,26 @@ public class VehiclePdfExporter {
 		document.close();
 	}
 
+	/**
+	 * Creates a header for a given metric.
+	 *
+	 * @param table destination table
+	 * @param text  header of the metric
+	 */
 	private static void addHeader(PdfPTable table, String text) {
 		PdfPCell cell = new PdfPCell(new Phrase(text));
 		cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
 		table.addCell(cell);
 	}
 
+	/**
+	 * Creates an image of the speed chart.
+	 *
+	 * @param writer   writer including information about the file
+	 * @param vehicles the list of given vehicles
+	 * @return returns the image ready to be added in the document
+	 */
 	private static Image createSpeedChartImage(PdfWriter writer, List<Vehicle> vehicles) throws Exception {
-
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		for (Vehicle v : vehicles) {
 			dataset.addValue(v.getSpeed(), "Speed", v.getId());
