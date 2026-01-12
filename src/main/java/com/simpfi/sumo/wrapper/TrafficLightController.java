@@ -228,7 +228,7 @@ public class TrafficLightController {
 
 		for (int i = 0; i < allConnections.size(); i++) {
 			Lane fromLane = allConnections.get(i).getFromLane();
-			if (fromLane.getLaneId().equals(laneId)) {
+			if (fromLane.getId().equals(laneId)) {
 				return stateofPhase.charAt(i);
 			}
 		}
@@ -268,7 +268,7 @@ public class TrafficLightController {
 							// or not
 			for (int j = 0; j < allConnection.size(); j++) {
 				Lane fromLane = allConnection.get(j).getFromLane();
-				int numberofVehicleInLane = vehicleController.getVehicleNumberInLane(fromLane.getLaneId());
+				int numberofVehicleInLane = vehicleController.getVehicleNumberInLane(fromLane.getId());
 				if (numberofVehicleInLane >= 3) {
 					flag = 1;
 					break;

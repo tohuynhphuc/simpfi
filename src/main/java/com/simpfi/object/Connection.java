@@ -68,7 +68,7 @@ public class Connection {
 	 */
 	public static Connection searchforConnection(String fromLaneID, List<Connection> allConnections) {
 		for (int i = 0; i < allConnections.size(); i++) {
-			if (allConnections.get(i).fromLane.getLaneId().equals(fromLaneID)) {
+			if (allConnections.get(i).fromLane.getId().equals(fromLaneID)) {
 				return allConnections.get(i);
 			}
 		}
@@ -77,7 +77,7 @@ public class Connection {
 
 	@Override
 	public String toString() {
-		return fromLane.getLaneId() + "  " + toLane.getLaneId();
+		return fromLane.getId() + "  " + toLane.getId();
 	}
 
 	

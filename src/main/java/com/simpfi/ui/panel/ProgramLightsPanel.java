@@ -320,7 +320,7 @@ public class ProgramLightsPanel extends Panel {
 			
 			Connection connection = allConnections.get(i);
 			StringBuilder sb = new StringBuilder();
-		    sb.append(connection.getFromLane().getLaneId()).append(" -> ").append(connection.getToLane().getLaneId());
+		    sb.append(connection.getFromLane().getId()).append(" -> ").append(connection.getToLane().getId());
 //			System.out.println(allConnections.get(i).getFromLane().getLaneId() + " " + allConnections.get(i).getToLane().getLaneId());
 		    allStringConnection[i] = sb.toString();
 		    
@@ -412,8 +412,8 @@ public class ProgramLightsPanel extends Panel {
 	    sb.append(String.format(" Remaining: %d \n\n", (int) remainingDuration));
 
 	    for (Connection c : allConnections) {
-	        String fromLaneString = c.getFromLane().getLaneId();
-	        String toLaneString = c.getToLane().getLaneId();
+	        String fromLaneString = c.getFromLane().getId();
+	        String toLaneString = c.getToLane().getId();
 	        char signal = trafficLightController.getStateOfLane(allConnections, fromLaneString, phase);
 
 	        sb.append("From: ").append(fromLaneString)
