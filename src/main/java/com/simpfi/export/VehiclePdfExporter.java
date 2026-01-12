@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * Generates a PDF summary report for vehicle simulation data.
- * Includes metrics, timestamps, and a speed comparison chart.
+ * Includes a timestamp, metrics and a speed comparison chart.
  */
 public class VehiclePdfExporter {
 
@@ -35,7 +35,6 @@ public class VehiclePdfExporter {
         PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
         document.open();
 
-        // ===== TITLE =====
         Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
         Paragraph title = new Paragraph("Vehicle Simulation Report", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
@@ -43,14 +42,12 @@ public class VehiclePdfExporter {
 
         document.add(Chunk.NEWLINE);
 
-        // ===== TIMESTAMP =====
         String timestamp = LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         document.add(new Paragraph("Generated: " + timestamp));
 
         document.add(Chunk.NEWLINE);
 
-        // ===== TABLE =====
         PdfPTable table = new PdfPTable(6);
         table.setWidthPercentage(100);
 
@@ -73,7 +70,7 @@ public class VehiclePdfExporter {
         document.add(table);
         document.add(Chunk.NEWLINE);
 
-        // ===== CHART =====
+
         Image chartImage = createSpeedChartImage(writer, vehicles);
         document.add(chartImage);
 
