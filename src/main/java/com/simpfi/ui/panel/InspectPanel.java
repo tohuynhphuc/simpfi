@@ -19,6 +19,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.Timer;
+import javax.swing.JOptionPane;
 
 import com.simpfi.config.Settings;
 import com.simpfi.export.VehicleCsvExporter;
@@ -168,37 +169,88 @@ public class InspectPanel extends Panel {
 
 		buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		Button exportCsvButton = new Button("Export CSV");
-		exportCsvButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		exportCsvButton.addActionListener(e -> {
+        Button exportCsvButton = new Button("Export CSV");
+        exportCsvButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        exportCsvButton.addActionListener(e -> {
 
-			JFileChooser chooser = new JFileChooser();
-			chooser.setDialogTitle("Save CSV Export");
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Save CSV Export");
 
-			if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-				File file = chooser.getSelectedFile();
+            // Vorschlagsname
+            chooser.setSelectedFile(new File("vehicle_export.csv"));
 
-				try {
-					VehicleCsvExporter.exportVehicles(selectedVehicles, file);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-			}
-		});
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
 
-		buttonPanel.add(exportCsvButton);
+                // .csv automatisch anhängen
+                if (!file.getName().toLowerCase().endsWith(".csv")) {
+                    file = new File(file.getAbsolutePath() + ".csv");
+                }
+
+                try {
+                    VehicleCsvExporter.exportVehicles(selectedVehicles, file);
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "CSV file successfully exported.",
+                            "Export Complete",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "CSV export failed:\n" + ex.getMessage(),
+                            "Export Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+
+        buttonPanel.add(exportCsvButton);
 		buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		Button exportPdfButton = new Button("Export PDF");
-		exportPdfButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		exportPdfButton.addActionListener(e -> {
-			try {
-				VehiclePdfExporter.exportVehicles(selectedVehicles, new File("vehicle_report.pdf"));
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		});
-		buttonPanel.add(exportPdfButton);
+        Button exportPdfButton = new Button("Export PDF");
+        exportPdfButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        exportPdfButton.addActionListener(e -> {
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Save PDF Report");
+
+            chooser.setSelectedFile(new File("vehicle_report.pdf"));
+
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+
+                if (!file.getName().toLowerCase().endsWith(".pdf")) {
+                    file = new File(file.getAbsolutePath() + ".pdf");
+                }
+
+                try {
+                    VehiclePdfExporter.exportVehicles(selectedVehicles, file);
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "PDF report successfully exported.",
+                            "Export Complete",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "PDF export failed:\n" + ex.getMessage(),
+                            "Export Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    ex.printStackTrace();
+                }
+            }
+        });
+        buttonPanel.add(exportPdfButton);
 		buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
 		listPanel.add(buttonPanel, BorderLayout.EAST);
