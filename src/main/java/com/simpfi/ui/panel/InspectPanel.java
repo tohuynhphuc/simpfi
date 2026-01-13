@@ -176,13 +176,11 @@ public class InspectPanel extends Panel {
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Save CSV Export");
 
-            // Vorschlagsname
             chooser.setSelectedFile(new File("vehicle_export.csv"));
 
             if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 File file = chooser.getSelectedFile();
 
-                // .csv automatisch anhängen
                 if (!file.getName().toLowerCase().endsWith(".csv")) {
                     file = new File(file.getAbsolutePath() + ".csv");
                 }
@@ -212,6 +210,15 @@ public class InspectPanel extends Panel {
 
         buttonPanel.add(exportCsvButton);
 		buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        //Export all
+
+        //Filter Export
+        //Profile1: congested edges -> slow cars, much traffic
+        //Profile2: only cars with a traveled distance of 10km
+        //Profile3: only private
+        //Profile4: ...
+
 
         Button exportPdfButton = new Button("Export PDF");
         exportPdfButton.setAlignmentX(Component.CENTER_ALIGNMENT);
