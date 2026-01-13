@@ -5,7 +5,7 @@ public class TrafficMetric {
 	private double avgSpeed;
 	private int totalCongestion;
 	private double avgTravelTime;
-	private TrafficStatistics stats;
+	// private TrafficStatistics stats;
 
 	public TrafficMetric(double avgSpeed, int tc, double att) {
 		this.avgSpeed = avgSpeed;

@@ -176,6 +176,7 @@ public class VehicleController {
 	 * @return the route
 	 * @throws Exception if the TraCI connection fails
 	 */
+	@SuppressWarnings("unchecked")
 	public List<String> getRoute(String vId) throws Exception {
 		return (List<String>) connection.do_job_get(de.tudresden.sumo.cmd.Vehicle.getRoute(vId));
 	}
@@ -209,7 +210,7 @@ public class VehicleController {
 	 */
 	public static void updateVehicleMap(Vehicle vehicleToUpdate) {
 		vehicleToUpdate.setIsActive(true);
-		vehicleMap.put(vehicleToUpdate.getID(), vehicleToUpdate);
+		vehicleMap.put(vehicleToUpdate.getId(), vehicleToUpdate);
 	}
 
 	/**
@@ -238,7 +239,7 @@ public class VehicleController {
 			"avg", "current", "max", "current", "", "", "", 0, 0));
 	}
 
-	/** * Get the number of vehicle in specific Lane */ 
+	/** * Get the number of vehicle in specific Lane */
 	public int getVehicleNumberInLane(String laneId) throws Exception {
 		return (int) connection.do_job_get(Lane.getLastStepVehicleNumber(laneId));
 	}

@@ -1,5 +1,6 @@
 package com.simpfi.config;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 
@@ -129,5 +130,9 @@ public class Constants {
 	public static final Color DEFAULT_LANE_DIVIDER_COLOR = Color.WHITE;
 	/** Color of the junction. */
 	public static final Color DEFAULT_JUNCTION_COLOR = Color.BLACK;
+
+	/** The default stroke. */
+	public static final BasicStroke DEFAULT_STROKE = new BasicStroke(
+		(float) (DEFAULT_NORMAL_STROKE_SIZE * DEFAULT_SCALE), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
 
 }

@@ -8,13 +8,10 @@ import java.util.List;
  * Creates Road class, which stores a list of edges with the same base name and
  * not included ":J" edges.
  */
-public class Road {
+public class Road extends SumoObject {
 
 	/** The list of edges with the same base name */
 	List<Edge> edgesWithSameBaseName = new ArrayList<>();
-
-	/** The base name (id) of edges */
-	private String id;
 
 	/** The filter flag */
 	private boolean filterFlag = true;
@@ -28,15 +25,6 @@ public class Road {
 	public Road(String eBaseId, Edge[] edges) {
 		id = eBaseId;
 		edgesWithSameBaseName = new ArrayList<>(Arrays.asList(edges));
-	}
-
-	/**
-	 * Gets the base ID of the road.
-	 * 
-	 * @return the base ID
-	 */
-	public String getId() {
-		return id;
 	}
 
 	/**
