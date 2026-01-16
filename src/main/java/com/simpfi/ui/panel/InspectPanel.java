@@ -113,25 +113,42 @@ public class InspectPanel extends Panel {
 
 		selectAllButton = new Button("Select All");
 		selectAllButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		selectAllButton.addActionListener(e -> {
+        selectAllButton.addActionListener(e -> {
 
-			selectedVehicles.clear();
-			vehicleListModel.clear();
+            // 🔒 STOP live speed updates
+            if (speedUpdateTimer != null) {
+                speedUpdateTimer.stop();
+            }
 
-			List<Vehicle> allVehicles = VehicleController.getVehicles();
-			selectedVehicles.addAll(allVehicles);
+            selectedVehicles.clear();
+            vehicleListModel.clear();
 
-			// add IDs to JList
-			for (Vehicle v : allVehicles) {
-				vehicleListModel.addElement(v.getId());
-			}
+            List<Vehicle> allVehicles = VehicleController.getVehicles();
 
-			if (!allVehicles.isEmpty()) {
-				vehicleList.setSelectionInterval(0, allVehicles.size() - 1);
-			}
-		});
+            for (Vehicle v : allVehicles) {
+                if (v.getIsActive()) {
+                    selectedVehicles.add(v);
+                    vehicleListModel.addElement(v.getId());
+                }
+            }
 
-		buttonPanel.add(selectAllButton);
+            if (!selectedVehicles.isEmpty()) {
+                vehicleList.setSelectionInterval(0, selectedVehicles.size() - 1);
+            }
+
+
+            if (!allVehicles.isEmpty()) {
+                vehicleList.setSelectionInterval(0, allVehicles.size() - 1);
+            }
+
+            // ▶️ RESTART after UI update
+            if (speedUpdateTimer != null) {
+                speedUpdateTimer.start();
+            }
+        });
+
+
+        buttonPanel.add(selectAllButton);
 		buttonPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
 		clearButton = new Button("Clear");
@@ -169,6 +186,7 @@ public class InspectPanel extends Panel {
 
 		buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
+//Export CSV Button
         Button exportCsvButton = new Button("Export CSV");
         exportCsvButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         exportCsvButton.addActionListener(e -> {
@@ -219,7 +237,7 @@ public class InspectPanel extends Panel {
         //Profile3: only private
         //Profile4: ...
 
-
+//Export PDF Button
         Button exportPdfButton = new Button("Export PDF");
         exportPdfButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         exportPdfButton.addActionListener(e -> {
@@ -584,27 +602,30 @@ public class InspectPanel extends Panel {
 	 * panel. Called by <code>speedUpdateTimer</> every 500ms.
 	 *
 	 */
-	private void updateLiveSpeedOnly() {
-		int listIndex = vehicleList.getSelectedIndex();
-		if (listIndex == -1)
-			return;
+    private void updateLiveSpeedOnly() {
+        int listIndex = vehicleList.getSelectedIndex();
+        if (listIndex == -1) return;
 
-		String value = vehicleListModel.get(listIndex);
-		if (value.startsWith("---"))
-			return;
+        String value = vehicleListModel.get(listIndex);
+        if (value.startsWith("---")) return;
 
-		int vehicleIndex = getVehicleIndexFromListIndex(listIndex);
-		if (vehicleIndex < 0 || vehicleIndex >= selectedVehicles.size())
-			return;
+        int vehicleIndex = getVehicleIndexFromListIndex(listIndex);
+        if (vehicleIndex < 0 || vehicleIndex >= selectedVehicles.size()) return;
 
-		Vehicle v = selectedVehicles.get(vehicleIndex);
+        Vehicle v = selectedVehicles.get(vehicleIndex);
 
-		try {
-			double liveSpeed = vehicleController.getSpeed(v.getId());
-			vehicleStaticLabels.get(2).setText(String.format("%.2f", liveSpeed));
+        if (!v.getIsActive()) return;
 
-		} catch (Exception ex) {
-		}
-	}
+        try {
+            double liveSpeed = vehicleController.getSpeed(v.getId());
+            vehicleStaticLabels.get(2).setText(String.format("%.2f", liveSpeed));
+
+        } catch (Exception ex) {
+            // SUMO connection closed → ignore safely
+        }
+
+    }
+
+
 
 }
