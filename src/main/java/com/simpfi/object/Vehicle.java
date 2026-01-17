@@ -366,6 +366,7 @@ public class Vehicle extends SumoObject implements Drawable {
 		// Implement Lazy Drawing: only vehicles within the view are drawn
 		int screenWidth = g.getClipBounds().width;
 		int screenHeight = g.getClipBounds().height;
+
 		Point position = getPosition().fromWorldToMap();
 		int size = (int) (Math.max(screenWidth, screenHeight) * Settings.config.SCALE
 			* Settings.config.VEHICLE_UPSCALE);

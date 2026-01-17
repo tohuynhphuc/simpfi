@@ -34,6 +34,10 @@ public class VehicleController {
 	/** The vehicle map, mapping each vehicle ID to a Vehicle object. */
 	private static Map<String, Vehicle> vehicleMap = new HashMap<>();
 
+	public static Map<String, Vehicle> getVehicleMap() {
+		return vehicleMap;
+	}
+
 	/**
 	 * Instantiates a new vehicle controller.
 	 *

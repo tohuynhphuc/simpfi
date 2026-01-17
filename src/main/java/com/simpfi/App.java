@@ -145,7 +145,14 @@ public class App {
 					// numberOfSteps = numberOfSteps <= 1 ? 1 : numberOfSteps;
 
 					// for (int i = 0; i < numberOfSteps; i++) {
-					doStep(conn);
+					lock.lock();
+					try {
+						doStep(conn);
+					} catch (Exception e) {
+						logger.log(Level.SEVERE, "Do step failed", e);
+					} finally {
+						lock.unlock();
+					}
 
 					// if (programLightPanel.isAdaptiveMode) {
 					// trafficLightController.updateTrafficLightByNumberOfVehicle(Settings.network.getTrafficLights());
@@ -166,6 +173,7 @@ public class App {
 
 				} catch (Exception e) {
 					logger.log(Level.SEVERE, "Simulation thread failed", e);
+					break;
 				}
 			}
 		}, "SimulationThread").start();
@@ -193,7 +201,9 @@ public class App {
 
 					stats.update(currentStep);
 
-					statisticsPanel.updatePanel(currentStep);
+					SwingUtilities.invokeLater(() -> {
+						statisticsPanel.updatePanel(currentStep);
+					});
 
 					// ===== Data for UI =====
 					tlId = programLightPanel.getSelectedTrafficLightID();
@@ -201,7 +211,7 @@ public class App {
 						currentPhase = trafficLightController.getPhase(tlId);
 						remaining = programLightPanel.showRemainingDuration(tlId, step * Settings.config.TIMESTEP);
 					} catch (Exception e) {
-						// TODO: Print stack trace
+						logger.log(Level.SEVERE, "Data for Traffic Light failed", e);
 					}
 					programLightPanel.updateRemainingTime(tlId, currentPhase, remaining);
 
@@ -214,7 +224,7 @@ public class App {
 					try {
 						retrieveData(conn);
 					} catch (Exception e) {
-						// TODO Auto-generated catch block
+						logger.log(Level.SEVERE, "Retrieve Data failed", e);
 					} finally {
 						lock.unlock();
 					}
@@ -235,6 +245,7 @@ public class App {
 	 */
 	private static void startUIThread(SumoConnectionManager conn) {
 		new Thread(() -> {
+
 			while (true) {
 				try {
 					// Event Dispatch Thread

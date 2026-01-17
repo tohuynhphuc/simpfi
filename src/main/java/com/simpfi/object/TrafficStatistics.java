@@ -65,9 +65,19 @@ public class TrafficStatistics {
 	 */
 	public void update(int currentStep) {
 		try {
+			Map<String, Vehicle> allVehiclesMap = vehicleController.getVehicleMap();
 			List<String> vehicleIDs = vehicleController.getAllVehicleIds();
-			for (String vid : vehicleIDs) {
-				double speed = vehicleController.getSpeed(vid);
+			for (String vid : allVehiclesMap.keySet()) {
+				// ignore vehicle if not active
+				if (!allVehiclesMap.get(vid).getIsActive()) {
+					continue;
+				}
+
+				// if vehicle is active
+				// getting straight from the simulation seems to have some problems with all the
+				// threads
+				// double speed = vehicleController.getSpeed(vid);
+				double speed = allVehiclesMap.get(vid).getSpeed();
 				vehicleSpeeds.put(vid, speed);
 
 				if (!vehicleStartTime.containsKey(vid)) {

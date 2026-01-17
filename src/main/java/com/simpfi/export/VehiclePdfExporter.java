@@ -26,11 +26,8 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.simpfi.object.Vehicle;
 
 /**
- * <<<<<<< HEAD Generates a PDF summary report for vehicle simulation data.
- * Includes a timestamp, metrics and a speed comparison chart. ======= Generates
- * a PDF summary report for vehicle simulation data using iText. Includes a
- * timestamp, metrics and a speed comparison chart. >>>>>>>
- * be0772bd3c4e4b9d2e249fb9e0c651f148b8c3f4
+ * Generates a PDF summary report for vehicle simulation data using iText.
+ * Includes a timestamp, metrics and a speed comparison chart.
  */
 public class VehiclePdfExporter {
 
