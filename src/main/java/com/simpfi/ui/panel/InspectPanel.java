@@ -120,7 +120,6 @@ public class InspectPanel extends Panel {
 		selectAllButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		selectAllButton.addActionListener(e -> {
 
-			// STOP live speed updates
 			if (speedUpdateTimer != null) {
 				speedUpdateTimer.stop();
 			}
@@ -128,24 +127,17 @@ public class InspectPanel extends Panel {
 			selectedVehicles.clear();
 			vehicleListModel.clear();
 
-			List<Vehicle> allVehicles = VehicleController.getVehicles();
-
-			for (Vehicle v : allVehicles) {
-				if (v.getIsActive()) {
+			for (Vehicle v : VehicleController.getVehicles()) {
+				if (v != null && v.getIsActive()) {
 					selectedVehicles.add(v);
 					vehicleListModel.addElement(v.getId());
 				}
 			}
 
-			if (!selectedVehicles.isEmpty()) {
-				vehicleList.setSelectionInterval(0, selectedVehicles.size() - 1);
+			if (!vehicleListModel.isEmpty()) {
+				vehicleList.setSelectionInterval(0, vehicleListModel.size() - 1);
 			}
 
-			if (!allVehicles.isEmpty()) {
-				vehicleList.setSelectionInterval(0, allVehicles.size() - 1);
-			}
-
-			// RESTART after UI update
 			if (speedUpdateTimer != null) {
 				speedUpdateTimer.start();
 			}
@@ -249,7 +241,8 @@ public class InspectPanel extends Panel {
 				}
 
 				try {
-					VehiclePdfExporter.exportVehicles(selectedVehicles, file);
+					int threshold = 5; // Default-Wert für congested edges
+					VehiclePdfExporter.exportVehicles(selectedVehicles, file, threshold);
 
 					JOptionPane.showMessageDialog(this, "PDF report successfully exported.", "Export Complete",
 						JOptionPane.INFORMATION_MESSAGE);
@@ -261,10 +254,11 @@ public class InspectPanel extends Panel {
 				}
 			}
 		});
+
 		buttonPanel.add(exportPdfButton);
 		buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		// ===== Export All Buttons =====
+		// Export All Buttons
 		Button exportAllCsvButton = new Button("Export All CSV");
 		exportAllCsvButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		exportAllCsvButton.addActionListener(e -> {
@@ -315,7 +309,7 @@ public class InspectPanel extends Panel {
 		buttonPanel.add(exportAllPdfButton);
 		buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		// ===== Filtered Export Button =====
+		// Filtered Export Button
 		Button filteredExportButton = new Button("Filtered Export");
 		filteredExportButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		filteredExportButton.addActionListener(e -> openFilterDialog());
@@ -647,8 +641,11 @@ public class InspectPanel extends Panel {
 	 *
 	 */
 	private void updateLiveSpeedOnly() {
+		if (vehicleController == null)
+			return;
+
 		int listIndex = vehicleList.getSelectedIndex();
-		if (listIndex == -1)
+		if (listIndex < 0 || listIndex >= vehicleListModel.size())
 			return;
 
 		String value = vehicleListModel.get(listIndex);
@@ -660,18 +657,15 @@ public class InspectPanel extends Panel {
 			return;
 
 		Vehicle v = selectedVehicles.get(vehicleIndex);
-
-		if (!v.getIsActive())
+		if (v == null || !v.getIsActive())
 			return;
 
 		try {
 			double liveSpeed = vehicleController.getSpeed(v.getId());
 			vehicleStaticLabels.get(2).setText(String.format("%.2f", liveSpeed));
-
 		} catch (Exception ex) {
-			// SUMO connection closed → ignore safely
+			// SUMO closed → silently ignore
 		}
-
 	}
 
 	private void openFilterDialog() {
@@ -679,40 +673,31 @@ public class InspectPanel extends Panel {
 		dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
 		dialog.setPreferredSize(new Dimension(400, 400));
 
-		// ===== Vehicle Type Checkboxes =====
-		CheckBox bigVehiclesCheck = new CheckBox("Only Big Vehicles", true);
-		CheckBox onlyPrivateCheck = new CheckBox("Only Private", false);
-		CheckBox onlyCommercialCheck = new CheckBox("Only Commercial", false);
+		// Vehicle Type Checkboxes
+		CheckBox bigVehiclesCheck = new CheckBox("Include Big Vehicles", false);
+		CheckBox smallVehiclesCheck = new CheckBox("Include Small Vehicles", false);
+		CheckBox privateVehiclesCheck = new CheckBox("Include Private Vehicles", false);
+		CheckBox commercialVehiclesCheck = new CheckBox("Include Commercial Vehicles", false);
 
-		onlyPrivateCheck.setToolTipText("Show only private vehicles (cars, motorcycles)");
-		onlyCommercialCheck.setToolTipText("Show only commercial vehicles (trucks, buses)");
+		smallVehiclesCheck.setToolTipText("Cars, motorcycles, bicycles");
 		bigVehiclesCheck.setToolTipText("Show only big vehicles (trucks, buses, emergency)");
-
-		// Konfliktvermeidung: nur einer von Private / Commercial gleichzeitig
-		onlyPrivateCheck.addActionListener(e -> {
-			if (onlyPrivateCheck.isSelected())
-				onlyCommercialCheck.setSelected(false);
-		});
-		onlyCommercialCheck.addActionListener(e -> {
-			if (onlyCommercialCheck.isSelected())
-				onlyPrivateCheck.setSelected(false);
-		});
 
 		Panel typePanel = new Panel();
 		typePanel.setLayout(new BoxLayout(typePanel, BoxLayout.Y_AXIS));
 		typePanel.add(bigVehiclesCheck);
-		typePanel.add(onlyPrivateCheck);
-		typePanel.add(onlyCommercialCheck);
+		typePanel.add(smallVehiclesCheck);
+		typePanel.add(privateVehiclesCheck);
+		typePanel.add(commercialVehiclesCheck);
 		dialog.add(typePanel);
 		dialog.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		// ===== Active Only =====
+		// Active Only
 		CheckBox activeOnlyCheck = new CheckBox("Active vehicles only", false);
 		activeOnlyCheck.setToolTipText("Show only vehicles that are currently active in the simulation");
 		dialog.add(activeOnlyCheck);
 		dialog.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		// ===== Distance Filters =====
+		// Distance Filters
 		Panel distancePanel = new Panel();
 		distancePanel.setLayout(new BoxLayout(distancePanel, BoxLayout.X_AXIS));
 		distancePanel.add(new Label("Distance (km): min"));
@@ -724,19 +709,7 @@ public class InspectPanel extends Panel {
 		dialog.add(distancePanel);
 		dialog.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		// ===== Speed Filters =====
-		Panel speedPanel = new Panel();
-		speedPanel.setLayout(new BoxLayout(speedPanel, BoxLayout.X_AXIS));
-		speedPanel.add(new Label("Speed (km/h): min"));
-		TextBox minSpeedField = new TextBox(0, true, true);
-		speedPanel.add(minSpeedField);
-		speedPanel.add(new Label("max"));
-		TextBox maxSpeedField = new TextBox(200, true, true);
-		speedPanel.add(maxSpeedField);
-		dialog.add(speedPanel);
-		dialog.add(Box.createRigidArea(new Dimension(0, 10)));
-
-		// ===== Congestion Threshold =====
+		// Congestion Threshold
 		Panel congestionPanel = new Panel();
 		congestionPanel.setLayout(new BoxLayout(congestionPanel, BoxLayout.X_AXIS));
 		CheckBox congestedEdgesCheck = new CheckBox("Only vehicles on congested edges", false);
@@ -748,7 +721,7 @@ public class InspectPanel extends Panel {
 		dialog.add(congestionPanel);
 		dialog.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		// ===== Export Buttons =====
+		// Export Buttons
 		Panel exportButtons = new Panel();
 		Button exportCsvButton = new Button("Export CSV");
 		Button exportPdfButton = new Button("Export PDF");
@@ -756,13 +729,13 @@ public class InspectPanel extends Panel {
 		exportButtons.add(exportPdfButton);
 		dialog.add(exportButtons);
 
-		// ===== Export Actions =====
-		exportCsvButton.addActionListener(e -> exportFiltered(true, bigVehiclesCheck, onlyPrivateCheck,
-			onlyCommercialCheck, activeOnlyCheck, minDistanceField, maxDistanceField, minSpeedField, maxSpeedField,
+		// Export Actions
+		exportCsvButton.addActionListener(e -> exportFiltered(true, bigVehiclesCheck, smallVehiclesCheck,
+			privateVehiclesCheck, commercialVehiclesCheck, activeOnlyCheck, minDistanceField, maxDistanceField,
 			congestedEdgesCheck, congestionThresholdField));
 
-		exportPdfButton.addActionListener(e -> exportFiltered(false, bigVehiclesCheck, onlyPrivateCheck,
-			onlyCommercialCheck, activeOnlyCheck, minDistanceField, maxDistanceField, minSpeedField, maxSpeedField,
+		exportPdfButton.addActionListener(e -> exportFiltered(false, bigVehiclesCheck, smallVehiclesCheck,
+			privateVehiclesCheck, commercialVehiclesCheck, activeOnlyCheck, minDistanceField, maxDistanceField,
 			congestedEdgesCheck, congestionThresholdField));
 
 		dialog.pack();
@@ -770,16 +743,17 @@ public class InspectPanel extends Panel {
 		dialog.setVisible(true);
 	}
 
-	private void exportFiltered(boolean csv, CheckBox bigVehiclesCheck, CheckBox onlyPrivateCheck,
-		CheckBox onlyCommercialCheck, CheckBox activeOnlyCheck, TextBox minDistanceField, TextBox maxDistanceField,
-		TextBox minSpeedField, TextBox maxSpeedField, CheckBox congestedEdgesCheck, TextBox congestionThresholdField) {
+	private void exportFiltered(boolean csv, CheckBox bigVehiclesCheck, CheckBox smallVehiclesCheck,
+		CheckBox privateVehiclesCheck, CheckBox commercialVehiclesCheck, CheckBox activeOnlyCheck,
+		TextBox minDistanceField, TextBox maxDistanceField, CheckBox congestedEdgesCheck,
+		TextBox congestionThresholdField) {
 		int threshold = (int) parseDouble(congestionThresholdField.getText(), 5);
 
-		List<Vehicle> filtered = getFilteredVehicles(bigVehiclesCheck.isSelected(), onlyPrivateCheck.isSelected(),
-			onlyCommercialCheck.isSelected(), activeOnlyCheck.isSelected(),
+		List<Vehicle> filtered = getFilteredVehicles(bigVehiclesCheck.isSelected(), smallVehiclesCheck.isSelected(),
+			privateVehiclesCheck.isSelected(), commercialVehiclesCheck.isSelected(), activeOnlyCheck.isSelected(),
 			parseDouble(minDistanceField.getText(), 0) * 1000,
-			parseDouble(maxDistanceField.getText(), Double.MAX_VALUE) * 1000, parseDouble(minSpeedField.getText(), 0),
-			parseDouble(maxSpeedField.getText(), Double.MAX_VALUE), congestedEdgesCheck.isSelected(), threshold);
+			parseDouble(maxDistanceField.getText(), Double.MAX_VALUE) * 1000, congestedEdgesCheck.isSelected(),
+			threshold);
 
 		JFileChooser chooser = new JFileChooser();
 		chooser.setDialogTitle(csv ? "Save CSV Export" : "Save PDF Export");
@@ -795,7 +769,7 @@ public class InspectPanel extends Panel {
 				if (csv)
 					VehicleCsvExporter.exportVehicles(filtered, file);
 				else
-					VehiclePdfExporter.exportVehicles(filtered, file);
+					VehiclePdfExporter.exportVehicles(filtered, file, threshold);
 
 				JOptionPane.showMessageDialog(null, (csv ? "CSV" : "PDF") + " export successful.", "Export Complete",
 					JOptionPane.INFORMATION_MESSAGE);
@@ -807,23 +781,53 @@ public class InspectPanel extends Panel {
 		}
 	}
 
-	private List<Vehicle> getFilteredVehicles(boolean onlyBigVehicles, boolean onlyPrivate, boolean onlyCommercial,
-		boolean activeOnly, double minDistance, double maxDistance, double minSpeed, double maxSpeed,
-		boolean congestedEdges, int congestionThreshold) {
+	private List<Vehicle> getFilteredVehicles(boolean includeBig, boolean includeSmall, boolean includePrivate,
+		boolean includeCommercial, boolean activeOnly, double minDistance, double maxDistance, boolean congestedEdges,
+		int congestionThreshold) {
 		return VehicleController.getVehicles().stream().filter(v -> {
-			// Big vehicle
-			if (onlyBigVehicles && v.getType().getId().equalsIgnoreCase("small"))
+
+			// Vehicle Type OR-Logic
+			boolean typeAllowed = true;
+
+			if (includeBig || includeSmall || includePrivate || includeCommercial) {
+				typeAllowed = false;
+				String typeId = v.getType().getId().toLowerCase();
+
+				if (includeBig
+					&& (typeId.contains("truck") || typeId.contains("bus") || typeId.contains("emergency"))) {
+					typeAllowed = true;
+				}
+
+				if (includeSmall && (typeId.contains("car") || typeId.contains("bike") || typeId.contains("motor"))) {
+					typeAllowed = true;
+				}
+
+				if (includePrivate && (typeId.contains("car") || typeId.contains("motor"))) {
+					typeAllowed = true;
+				}
+
+				if (includeCommercial && (typeId.contains("truck") || typeId.contains("bus"))) {
+					typeAllowed = true;
+				}
+			}
+
+			if (!typeAllowed)
 				return false;
-			// Private / Commercial
-			if (onlyPrivate && !v.getType().getId().equalsIgnoreCase("private"))
+
+			// ===== Active =====
+			if (activeOnly && !v.getIsActive())
 				return false;
-			if (onlyCommercial && !v.getType().getId().equalsIgnoreCase("commercial"))
+
+			// ===== Distance =====
+			if (v.getDistance() < minDistance || v.getDistance() > maxDistance)
 				return false;
+
+			// ===== Congestion =====
+			if (congestedEdges && !isOnCongestedEdge(v, congestionThreshold))
+				return false;
+
 			return true;
-		}).filter(v -> !activeOnly || v.getIsActive())
-			.filter(v -> v.getDistance() >= minDistance && v.getDistance() <= maxDistance)
-			.filter(v -> v.getSpeed() >= minSpeed && v.getSpeed() <= maxSpeed)
-			.filter(v -> !congestedEdges || isOnCongestedEdge(v, congestionThreshold)).toList();
+		}).toList();
 	}
 
 	// Hilfsmethode für Parsing
@@ -842,7 +846,8 @@ public class InspectPanel extends Panel {
 			return false;
 
 		long vehicleCount = VehicleController.getVehicles().stream()
-			.filter(veh -> veh.getRoadID().equals(edge.getId()) && veh.getIsActive()).count();
+			.filter(veh -> veh.getIsActive() && veh.getRoadID() != null && veh.getRoadID().equals(edge.getId()))
+			.count();
 
 		return vehicleCount >= threshold;
 	}

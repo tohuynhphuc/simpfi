@@ -1,5 +1,6 @@
 package com.simpfi.export;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,7 +10,9 @@ import java.util.List;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 import com.itextpdf.text.BaseColor;
@@ -31,15 +34,7 @@ import com.simpfi.object.Vehicle;
  */
 public class VehiclePdfExporter {
 
-	/**
-	 * Exports the given vehicles to a PDF file.
-	 *
-	 * @param vehicles vehicles to export
-	 * @param file     target PDF file
-	 * @throws Exception if PDF generation fails
-	 */
-	public static void exportVehicles(List<Vehicle> vehicles, File file) throws Exception {
-
+	public static void exportVehicles(List<Vehicle> vehicles, File file, int congestionThreshold) throws Exception {
 		Document document = new Document();
 		PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
 		document.open();
@@ -48,17 +43,14 @@ public class VehiclePdfExporter {
 		Paragraph title = new Paragraph("Vehicle Simulation Report", titleFont);
 		title.setAlignment(Element.ALIGN_CENTER);
 		document.add(title);
-
 		document.add(Chunk.NEWLINE);
 
 		String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 		document.add(new Paragraph("Generated: " + timestamp));
-
 		document.add(Chunk.NEWLINE);
 
 		PdfPTable table = new PdfPTable(6);
 		table.setWidthPercentage(100);
-
 		addHeader(table, "ID");
 		addHeader(table, "Type");
 		addHeader(table, "Speed");
@@ -78,44 +70,91 @@ public class VehiclePdfExporter {
 		document.add(table);
 		document.add(Chunk.NEWLINE);
 
-		Image chartImage = createSpeedChartImage(writer, vehicles);
+		// Chart: Congestion pro Edge & Vehicle Type
+		Image chartImage = createSimpleCongestionChart(writer, vehicles, congestionThreshold);
+		chartImage.setAlignment(Element.ALIGN_CENTER);
 		document.add(chartImage);
 
 		document.close();
 	}
 
-	/**
-	 * Creates a header for a given metric.
-	 *
-	 * @param table destination table
-	 * @param text  header of the metric
-	 */
+	// Wrapper für Default Threshold
+	public static void exportVehicles(List<Vehicle> vehicles, File file) throws Exception {
+		exportVehicles(vehicles, file, 5);
+	}
+
 	private static void addHeader(PdfPTable table, String text) {
 		PdfPCell cell = new PdfPCell(new Phrase(text));
 		cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
 		table.addCell(cell);
 	}
 
-	/**
-	 * Creates an image of the speed chart.
-	 *
-	 * @param writer   writer including information about the file
-	 * @param vehicles the list of given vehicles
-	 * @return returns the image ready to be added in the document
-	 */
-	private static Image createSpeedChartImage(PdfWriter writer, List<Vehicle> vehicles) throws Exception {
+	private static Image createSimpleCongestionChart(PdfWriter writer, List<Vehicle> vehicles, int threshold)
+		throws Exception {
+
+		// Dataset nur für congested edges
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-		for (Vehicle v : vehicles) {
-			dataset.addValue(v.getSpeed(), "Speed", v.getId());
+
+		// EdgeID -> vehicle count
+		vehicles.stream().map(Vehicle::getEdgeFromRoadID).filter(edge -> edge != null).distinct().forEach(edge -> {
+			long count = vehicles.stream().filter(v -> v.getIsActive() && v.getEdgeFromRoadID() != null
+				&& v.getEdgeFromRoadID().getId().equals(edge.getId())).count();
+			if (count >= threshold) {
+				dataset.setValue(count, "Vehicles", edge.getId());
+			}
+		});
+
+		if (dataset.getColumnCount() == 0) {
+			dataset.setValue(0, "Vehicles", "N/A");
 		}
 
-		JFreeChart chart = ChartFactory.createBarChart("Vehicle Speed Comparison", "Vehicle", "Speed", dataset,
-			PlotOrientation.VERTICAL, false, true, false);
+		// Gestapeltes Balkendiagramm horizontal
+		JFreeChart chart = ChartFactory.createBarChart("Congested Edges", "Edge ID", // Domain Axis → Y-Achse bei
+																						// horizontal
+			"Vehicle Count", // Range Axis → X-Achse bei horizontal
+			dataset, PlotOrientation.HORIZONTAL, false, // keine Legende nötig
+			true, false);
 
-		BufferedImage bufferedImage = chart.createBufferedImage(500, 300);
-		Image image = Image.getInstance(writer, bufferedImage, 1.0f);
-		image.setAlignment(Element.ALIGN_CENTER);
+		// Renderer Farbe + Werte auf Balken
+		CategoryPlot plot = chart.getCategoryPlot();
+		BarRenderer renderer = (BarRenderer) plot.getRenderer();
 
-		return image;
+		for (int i = 0; i < dataset.getColumnCount(); i++) {
+			Number value = dataset.getValue(0, i);
+			if (value != null) {
+				double ratio = value.doubleValue() / threshold;
+				if (ratio < 1.5)
+					renderer.setSeriesPaint(0, Color.GREEN);
+				else if (ratio < 3)
+					renderer.setSeriesPaint(0, Color.YELLOW);
+				else
+					renderer.setSeriesPaint(0, Color.RED);
+			}
+		}
+
+		renderer.setDefaultItemLabelsVisible(true);
+		renderer.setDefaultItemLabelFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+		renderer.setDefaultItemLabelPaint(Color.BLACK);
+
+		// Achsen Schriftgrößen
+		plot.getDomainAxis().setTickLabelFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12));
+		plot.getRangeAxis().setTickLabelFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+
+		// Höhe dynamisch anpassen, damit 1 Edge nicht riesig wird
+		int categoryHeight = 50;
+		int minHeight = 200;
+		int height = Math.max(minHeight, dataset.getColumnCount() * categoryHeight);
+		int width = 600; // feste Breite für PDF
+
+		// BufferedImage → PDF Image
+		BufferedImage bufferedImage = chart.createBufferedImage(width, height);
+		java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+		javax.imageio.ImageIO.write(bufferedImage, "png", baos);
+		baos.flush();
+		byte[] imageInBytes = baos.toByteArray();
+		baos.close();
+
+		return Image.getInstance(imageInBytes);
 	}
+
 }
