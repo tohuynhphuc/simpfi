@@ -159,7 +159,7 @@ public class VehiclePdfExporter {
 
         plot.getDomainAxis().setTickLabelFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12));
         plot.getRangeAxis().setTickLabelFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
-#
+
         int categoryHeight = 50;
         int minHeight = 200;
         int height = Math.max(minHeight, dataset.getColumnCount() * categoryHeight);
