@@ -1,7 +1,10 @@
 package com.simpfi;
 
 import java.awt.BorderLayout;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,6 +15,7 @@ import javax.swing.UIManager;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.simpfi.config.Constants;
 import com.simpfi.config.Settings;
+import com.simpfi.object.SimulationSnapshot;
 import com.simpfi.object.TrafficStatistics;
 import com.simpfi.object.Vehicle;
 import com.simpfi.sumo.wrapper.EdgeController;
@@ -96,7 +100,15 @@ public class App {
 	 */
 	private static volatile Double remaining;
 
-	public static final ReentrantLock lock = new ReentrantLock();
+	/** Lock used to prevent other threads from entering critical section of code */
+	public static ReentrantLock lock = new ReentrantLock();
+
+	/**
+	 * Store the atomic reference of the current simulation snapshot, used to write
+	 * smoother UI.
+	 */
+	public static AtomicReference<SimulationSnapshot> currentSnapshot = new AtomicReference<>(
+		new SimulationSnapshot(0, new HashMap<>(), new HashMap<>()));
 
 	/**
 	 * Main function and starting point of application. Sets up TraCI connection,
@@ -164,9 +176,8 @@ public class App {
 					// }
 
 					long end = System.nanoTime();
-					// logger.log(Level.INFO, "Simulation step time (ms): {0}", (end - start) /
-					// 1_000_000.0);
-					// logger.log(Level.INFO, "but the step time should be: {0}", stepMs);
+					logger.log(Level.INFO, "Simulation step time (ms): {0}", (end - start) / 1_000_000.0);
+					logger.log(Level.INFO, "but the step time should be: {0}", stepMs);
 
 					long sleep = next - System.currentTimeMillis();
 					if (sleep > 0)
@@ -223,7 +234,9 @@ public class App {
 
 					lock.lock();
 					try {
-						retrieveData(conn);
+						// Create snapshot and update data from controllers
+						SimulationSnapshot newSnapshot = retrieveData(conn);
+						currentSnapshot.set(newSnapshot);
 					} catch (Exception e) {
 						logger.log(Level.SEVERE, "Retrieve Data failed", e);
 					} finally {
@@ -232,7 +245,7 @@ public class App {
 
 					long uiEnd = System.nanoTime();
 					long threadTime = (long) ((uiEnd - uiStart) / 1_000_000.0);
-					// logger.log(Level.INFO, "Data thread time (ms): {0}", threadTime);
+					logger.log(Level.INFO, "Data thread time (ms): {0}", threadTime);
 
 				} catch (Exception e) {
 					logger.log(Level.SEVERE, "Data Thread failed", e);
@@ -256,8 +269,8 @@ public class App {
 						mapPanel.repaint();
 
 						long uiEnd = System.nanoTime();
-						// logger.log(Level.INFO, "\033[96mUI drawing time (ms): {0}\033[39m", (uiEnd -
-						// uiStart) / 1000000.0);
+						logger.log(Level.INFO, "\033[96mUI drawing time (ms): {0}\033[39m",
+							(uiEnd - uiStart) / 1000000.0);
 					});
 
 					Thread.sleep(33);
@@ -290,45 +303,58 @@ public class App {
 	}
 
 	/**
-	 * Retrieves updated vehicle and traffic light data and updates the UI and
-	 * controllers.
+	 * Retrieves updated vehicle and traffic light data and updates controllers.
+	 * Also update the snapshot for UI.
 	 *
 	 * @param sim the connection manager
+	 * @return new immutable SimulationSnapshot with defensive copies of vehicles
 	 * @throws Exception if the connection fails
 	 */
-	private static void retrieveData(SumoConnectionManager sim) throws Exception {
-		lock.lock();
-		try {
-			System.out.println("Disabling...");
-			VehicleController.disableAllVehicles();
+	private static SimulationSnapshot retrieveData(SumoConnectionManager sim) throws Exception {
+		Map<String, Vehicle> snapshotVehicleMap = new HashMap<>();
+		VehicleController.disableAllVehicles();
 
-			List<String> allVehicleIds = vehicleController.getAllVehicleIds();
-			for (String vid : allVehicleIds) {
-				Point pos = vehicleController.getPosition(vid);
-				String edge = vehicleController.getRoadID(vid);
-				double angle = vehicleController.getAngle(vid);
-				String type = vehicleController.getTypeID(vid);
-				double width = vehicleController.getWidth(vid);
-				double height = vehicleController.getHeight(vid);
-				double speed = vehicleController.getSpeed(vid);
-				double maxSpeed = vehicleController.getMaxSpeed(vid);
-				double acceleration = vehicleController.getAcceleration(vid);
-				double distance = vehicleController.getDistance(vid);
-				List<String> route = vehicleController.getRoute(vid);
+		List<String> allVehicleIds = vehicleController.getAllVehicleIds();
+		for (String vid : allVehicleIds) {
+			Point pos = vehicleController.getPosition(vid);
+			String edge = vehicleController.getRoadID(vid);
+			double angle = vehicleController.getAngle(vid);
+			String type = vehicleController.getTypeID(vid);
+			double width = vehicleController.getWidth(vid);
+			double height = vehicleController.getHeight(vid);
+			double speed = vehicleController.getSpeed(vid);
+			double maxSpeed = vehicleController.getMaxSpeed(vid);
+			double acceleration = vehicleController.getAcceleration(vid);
+			double distance = vehicleController.getDistance(vid);
+			List<String> route = vehicleController.getRoute(vid);
 
-				Vehicle v = new Vehicle(vid, pos, edge, type, angle, width, height, speed, maxSpeed, acceleration,
-					distance, route);
+			// Create Vehicle instance for the CONTROLLER (mutable)
+			Vehicle controllerVehicle = new Vehicle(vid, pos, edge, type, angle, width, height, speed, maxSpeed,
+				acceleration, distance, route);
+			VehicleController.updateVehicleMap(controllerVehicle);
 
-				VehicleController.updateVehicleMap(v);
-			}
-			System.out.println("All enabled...");
-		} finally {
-			lock.unlock();
+			// Create separate Vehicle instance for the SNAPSHOT (defensive copy, isolated)
+			Vehicle snapshotVehicle = new Vehicle(vid, new Point(pos.getX(), pos.getY()), edge, type, angle, width,
+				height, speed, maxSpeed, acceleration, distance,
+				route != null ? new java.util.ArrayList<>(route) : null);
+			snapshotVehicle.setIsActive(true);
+			snapshotVehicleMap.put(vid, snapshotVehicle);
 		}
+
+		Map<String, String> trafficLightStateMap = new HashMap<>();
+
 		for (String tl : trafficLightController.getIDList()) {
 			String light_state = trafficLightController.getState(tl);
+			// Update controller so UI panels have the latest traffic light state
 			TrafficLightController.updateTrafficLightState(tl, light_state);
+
+			// Put a copy in the snapshot (traffic light state strings are immutable anyway)
+			trafficLightStateMap.put(tl, light_state);
 		}
+
+		// Create immutable snapshot with the isolated vehicle copies
+		// UI reads from this snapshot; controller reads from its own mutable instances
+		return new SimulationSnapshot(step, snapshotVehicleMap, trafficLightStateMap);
 	}
 
 	/**

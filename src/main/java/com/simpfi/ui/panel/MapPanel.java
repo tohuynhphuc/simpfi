@@ -18,6 +18,7 @@ import com.simpfi.object.Edge;
 import com.simpfi.object.Junction;
 import com.simpfi.object.TrafficLight;
 import com.simpfi.object.Vehicle;
+import com.simpfi.object.SimulationSnapshot;
 import com.simpfi.sumo.wrapper.VehicleController;
 import com.simpfi.ui.Mouse;
 import com.simpfi.ui.Panel;
@@ -80,51 +81,52 @@ public class MapPanel extends Panel {
 		// Draw the highlighted Route in a different color (if any)
 		if (Settings.highlight.HIGHLIGHTED_ROUTE != null) {
 			for (Edge e : Settings.highlight.HIGHLIGHTED_ROUTE.getEdges()) {
-				e.draw(g2D, Settings.config.HIGHLIGHTED_ROUTE_COLOR);
+				e.draw(g2D, Settings.config.HIGHLIGHTED_ROUTE_COLOR, null);
 			}
 		}
 
 		// Draw the highlighted Road (filter hover) in a different color (if any)
 		if (Settings.highlight.HIGHLIGHTED_ROAD_FILTER != null) {
 			for (Edge e : Settings.highlight.HIGHLIGHTED_ROAD_FILTER.getEdgesWithSameBaseName()) {
-				e.draw(g2D, Settings.config.HIGHLIGHTED_ROAD_FILTER_COLOR);
+				e.draw(g2D, Settings.config.HIGHLIGHTED_ROAD_FILTER_COLOR, null);
 			}
 		}
 
 		if (Settings.highlight.HIGHLIGHTED_CONNECTION != null) {
 			Settings.highlight.HIGHLIGHTED_CONNECTION.getFromLane().draw(g2D,
-				Settings.config.HIGHLIGHTED_CONNECTION_COLOR);
+				Settings.config.HIGHLIGHTED_CONNECTION_COLOR, null);
 			Settings.highlight.HIGHLIGHTED_CONNECTION.getToLane().draw(g2D,
-				Settings.config.HIGHLIGHTED_CONNECTION_COLOR);
+				Settings.config.HIGHLIGHTED_CONNECTION_COLOR, null);
 		}
 
 		if (Settings.highlight.HIGHLIGHTED_TRAFFIC_LIGHT != null) {
 			Settings.highlight.HIGHLIGHTED_TRAFFIC_LIGHT.getJunction().draw(g2D,
-				Settings.config.HIGHLIGHTED_TRAFFIC_LIGHT_COLOR);
+				Settings.config.HIGHLIGHTED_TRAFFIC_LIGHT_COLOR, null);
 		}
+
+		// Copy-on-write: Read immutable snapshot
+		// The snapshot contains a consistent view of all traffic lights and vehicles at this simulation step
+		SimulationSnapshot snapshot = App.currentSnapshot.get();
 
 		for (TrafficLight tl : Settings.network.getTrafficLights()) {
 			try {
-				tl.draw(g2D, null);
+				tl.draw(g2D, null, snapshot);
 			} catch (Exception e1) {
 				logger.log(Level.SEVERE,
 					String.format("Failed to draw the traffic light (%s) in Map Panel!", tl.toString()), e1);
 			}
 		}
 
-		App.lock.lock();
-		try {
-			for (Vehicle v : VehicleController.getVehicles()) {
-				try {
-					v.draw(g2D, v.getVehicleColor());
-				} catch (Exception e) {
-					logger.log(Level.SEVERE,
-						String.format("Failed to draw the vehicle (%s) in Map Panel!", v.toString()), e);
-				}
+		for (Vehicle v : snapshot.vehicles.values()) {
+			try {
+				v.draw(g2D, v.getVehicleColor(), null);
+			} catch (Exception e) {
+				logger.log(Level.SEVERE,
+					String.format("Failed to draw the vehicle (%s) in Map Panel!", v.toString()), e);
 			}
-		} finally {
-			App.lock.unlock();
 		}
+		
+
 
 		// Avoid changing too immediately, because it keep increase the angle
 		g2D.setTransform(old);
@@ -221,12 +223,12 @@ public class MapPanel extends Panel {
 
 		// Draw edges (static, cached)
 		for (Edge e : Settings.network.getEdges()) {
-			e.draw(g2D, Settings.config.LANE_COLOR);
+			e.draw(g2D, Settings.config.LANE_COLOR, null);
 		}
 
 		// Draw junctions (static, cached)
 		for (Junction j : Settings.network.getJunctions()) {
-			j.draw(g2D, Settings.config.JUNCTION_COLOR);
+			j.draw(g2D, Settings.config.JUNCTION_COLOR, null);
 		}
 
 		g2D.dispose();

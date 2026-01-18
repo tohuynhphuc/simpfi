@@ -642,7 +642,7 @@ public class InspectPanel extends Panel {
 	}
 
 	/**
-	 * Translates the given listIndex indexes in the Vehilce-indexes because of
+	 * Translates the given listIndex indexes in the vehicle indexes because of
 	 * headers. Only increments count when object not header.
 	 *
 	 * @param listIndex JList index
