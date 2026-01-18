@@ -749,7 +749,7 @@ public class InspectPanel extends Panel {
     }
 
     private void exportFiltered(
-            boolean csv,    //true CSV, false PDF
+            boolean csv,    
             CheckBox bigVehiclesCheck,
             CheckBox smallVehiclesCheck,
             CheckBox privateVehiclesCheck,
