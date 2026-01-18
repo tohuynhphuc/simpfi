@@ -12,5 +12,4 @@ all:
     src/main/java/com/simpfi/util/*.java \
     src/main/java/com/simpfi/util/reader/*.java	\
     src/main/java/com/simpfi/exception/*.java \
-    src/main/java/com/simpfi/export/*.java \
-    src/main/java/com/simpfi/export/filter/*.java
+    src/main/java/com/simpfi/export/*.java 

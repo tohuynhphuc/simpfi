@@ -69,6 +69,13 @@ public class VehicleController {
 		return (double) connection.do_job_get(de.tudresden.sumo.cmd.Vehicle.getSpeed(vId));
 	}
 
+	/**
+	 * Sets the speed of a specific vehicle in the simulation.
+	 * 
+	 * @param vId      vehicle ID
+	 * @param newSpeed the new speed value to assign to the vehicle 
+	 * @throws Exception if the command cannot be sent to SUMO or the simulation connection fails
+	 */
 	public void setSpeed(String vId, double newSpeed) throws Exception {
 		connection.do_job_set(de.tudresden.sumo.cmd.Vehicle.setSpeed(vId, newSpeed));
 	}
