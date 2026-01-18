@@ -180,11 +180,21 @@ public class TrafficLight implements Drawable {
 	 * Draws a {@link TrafficLight} on the map.
 	 *
 	 * @param g  the {@link Graphics2D}
-	 * @param tl the traffic light
+	 * @param c the color
 	 */
 	@Override
-	public void draw(Graphics2D g, Color c) {
-		String state = getTLState();
+	public void draw(Graphics2D g, Color c, SimulationSnapshot snapshot) {
+		// Copy-on-write approach replace the controller in getLiveTrafficLightStates()
+		String tlId = this.getJunction().getId();
+		String state = null;
+		if (snapshot != null && snapshot.trafficLightStates != null) {
+			state = snapshot.trafficLightStates.get(tlId);
+		}
+		// Set a default state
+		if (state == null) {
+			String defaultState = this.getPhase()[0].getState();
+			state = defaultState;
+		}
 		List<Connection> connections = getConnections();
 		// String previousLaneID = null;
 

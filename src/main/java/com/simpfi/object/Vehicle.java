@@ -363,8 +363,14 @@ public class Vehicle extends SumoObject implements Drawable {
 		this.nextTurn = t;
 	}
 
+	/**
+	 * Draws a {@link Vehicle} on the map.
+	 *
+	 * @param g  the {@link Graphics2D}
+	 * @param c the color
+	 */
 	@Override
-	public void draw(Graphics2D g, Color c) {
+	public void draw(Graphics2D g, Color c, SimulationSnapshot snapshot) {
 		// We don't draw inactive vehicles
 		if (this == null || !getIsActive()) {
 			return;

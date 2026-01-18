@@ -101,7 +101,7 @@ public class Lane extends SumoObject implements Drawable {
 	 * @param c the color
 	 */
 	@Override
-	public void draw(Graphics2D g, Color c) {
+	public void draw(Graphics2D g, Color c, SimulationSnapshot snapshot) {
 		GraphicsSettings oldSettings = GraphicsSettings.saveCurrentGraphicsSettings(g);
 
 		Point[] shape = getShape();

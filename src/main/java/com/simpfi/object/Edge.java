@@ -97,11 +97,11 @@ public class Edge extends SumoObject implements Drawable {
 	 * @param c the color
 	 */
 	@Override
-	public void draw(Graphics2D g, Color c) {
+	public void draw(Graphics2D g, Color c, SimulationSnapshot snapshot) {
 		Lane[] lanes = getLanes();
 		int laneSize = getLanesSize();
 		for (int i = 0; i < laneSize; i++) {
-			lanes[i].draw(g, c);
+			lanes[i].draw(g, c, null);
 		}
 
 		if (laneSize <= 1) {
