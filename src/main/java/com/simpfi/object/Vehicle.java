@@ -36,9 +36,16 @@ public class Vehicle extends SumoObject implements Drawable {
 	/** The vehicle height. */
 	private double height;
 
+	/** Maximum speed of vehicles */
 	private double maxSpeed;
+
+	/** Acceleration of vehicle */
 	private double acceleration;
+
+	/** Total distance to be traveled along the route */
 	private double distance;
+
+	/** List of routes */
 	private List<String> route;
 
 	/**

@@ -482,6 +482,18 @@ public class ProgramLightsPanel extends Panel {
 		}
 	}
 
+	/**
+	 * Displays a comparison of traffic metrics between adaptive and static traffic modes.
+	 * <p>
+	 * This method creates a table showing the average speed, total congestion, and
+	 * average travel time for both static and adaptive modes, along with the
+	 * absolute difference for each metric. The table is displayed in a scrollable
+	 * pop-up dialog.
+	 * </p>
+	 *
+	 * @param adaptiveMode  the {@link TrafficMetric} object containing metrics for the adaptive mode
+	 * @param staticMode    the {@link TrafficMetric} object containing metrics for the static mode
+	 */
 	private void showComparison(TrafficMetric adaptiveMode, TrafficMetric staticMode) {
 		String[] columns = { "Metric", "Static Mode", "Adpative Mode", "Difference" };
 		Object[][] data = {
