@@ -65,8 +65,8 @@ public class TrafficStatistics {
 	 */
 	public void update(int currentStep) {
 		try {
-			Map<String, Vehicle> allVehiclesMap = vehicleController.getVehicleMap();
-			List<String> vehicleIDs = vehicleController.getAllVehicleIds();
+			Map<String, Vehicle> allVehiclesMap = VehicleController.getVehicleMap();
+			// List<String> vehicleIDs = vehicleController.getAllVehicleIds();
 			for (String vid : allVehiclesMap.keySet()) {
 				// ignore vehicle if not active
 				if (!allVehiclesMap.get(vid).getIsActive()) {
