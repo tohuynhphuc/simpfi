@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.simpfi.config.Settings;
 import com.simpfi.export.VehicleCsvExporter;
@@ -28,6 +30,7 @@ import com.simpfi.ui.Panel;
 import com.simpfi.ui.ScrollPane;
 import com.simpfi.ui.TextBox;
 import com.simpfi.ui.CheckBox;
+import com.simpfi.sumo.wrapper.EdgeController;
 
 /**
  * A UI panel used for inspecting vehicles. This class extends {@link Panel}.
@@ -38,6 +41,9 @@ public class InspectPanel extends Panel {
     private static final long serialVersionUID = 1L;
 
     private VehicleController vehicleController;
+    private EdgeController edgeController;
+
+    private static final Logger LOGGER = Logger.getLogger(InspectPanel.class.getName());
 
     private List<Vehicle> selectedVehicles = new ArrayList<>();
     private Label modeLabel;
@@ -167,7 +173,7 @@ public class InspectPanel extends Panel {
 
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-//Export CSV Button
+        //Export CSV Button
         Button exportCsvButton = new Button("Export CSV");
         exportCsvButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         exportCsvButton.addActionListener(e -> {
@@ -210,7 +216,7 @@ public class InspectPanel extends Panel {
         buttonPanel.add(exportCsvButton);
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-//Export PDF Button
+        //Export PDF Button
         Button exportPdfButton = new Button("Export PDF");
         exportPdfButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         exportPdfButton.addActionListener(e -> {
@@ -254,7 +260,7 @@ public class InspectPanel extends Panel {
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
 
-//Export All Buttons
+        //Export All Buttons
         Button exportAllCsvButton = new Button("Export All CSV");
         exportAllCsvButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         exportAllCsvButton.addActionListener(e -> {
@@ -893,16 +899,12 @@ public class InspectPanel extends Panel {
         Edge edge = v.getEdgeFromRoadID();
         if (edge == null) return false;
 
-        List<Vehicle> snapshot = new ArrayList<>(VehicleController.getVehicles());
-
-        long vehicleCount = snapshot.stream()
-                .filter(veh ->
-                        veh.getIsActive() &&
-                                veh.getRoadID() != null &&
-                                veh.getRoadID().equals(edge.getId())
-                )
-                .count();
-
-        return vehicleCount >= threshold;
+        try{
+            int vehicleCount = edgeController.getEdgeVehicleCount(edge.getId());
+            return vehicleCount >= threshold;
+        }catch(Exception e){
+            LOGGER.log(Level.WARNING, "Failed to get vehicle count for edge " + edge.getId(), e);
+            return false;
+        }
     }
 }

@@ -7,6 +7,10 @@ import java.io.FileOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.awt.Paint;
+
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
@@ -104,18 +108,15 @@ public class VehiclePdfExporter {
      */
     private static Image createCongestionChart(PdfWriter writer, List<Vehicle> vehicles, int threshold) throws Exception {
 
-        // Dataset nur für congested edges
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-        // EdgeID -> vehicle count
         vehicles.stream()
                 .map(Vehicle::getEdgeFromRoadID)
                 .filter(edge -> edge != null)
                 .distinct()
                 .forEach(edge -> {
                     long count = vehicles.stream()
-                            .filter(v -> v.getIsActive() &&
-                                    v.getEdgeFromRoadID() != null &&
+                            .filter(v -> v.getEdgeFromRoadID() != null &&
                                     v.getEdgeFromRoadID().getId().equals(edge.getId()))
                             .count();
                     if (count >= threshold) {
@@ -127,11 +128,10 @@ public class VehiclePdfExporter {
             dataset.setValue(0, "Vehicles", "N/A");
         }
 
-        // Gestapeltes Balkendiagramm horizontal
         JFreeChart chart = ChartFactory.createBarChart(
                 "Congested Edges",
-                "Edge ID",          // Domain Axis → Y-Achse bei horizontal
-                "Vehicle Count", // Range Axis → X-Achse bei horizontal
+                "Edge ID",          
+                "Vehicle Count", 
                 dataset,
                 PlotOrientation.HORIZONTAL,
                 false,
@@ -139,7 +139,6 @@ public class VehiclePdfExporter {
                 false
         );
 
-        // Renderer Farbe + Werte auf Balken
         CategoryPlot plot = chart.getCategoryPlot();
         BarRenderer renderer = (BarRenderer) plot.getRenderer();
 
@@ -174,5 +173,5 @@ public class VehiclePdfExporter {
 
         return Image.getInstance(imageInBytes);
     }
-
 }
+
