@@ -1,0 +1,610 @@
+\documentclass[a4paper, 12pt]{article}
+
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{textcomp}
+\usepackage[utf8]{inputenc}
+\usepackage{biblatex}
+\usepackage{blindtext}
+\usepackage{enumerate}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage[unicode]{hyperref}
+\usepackage{lipsum}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{tgheros}
+\usepackage{xcolor}
+\usepackage[T5]{fontenc}
+\usepackage{tabulary}
+
+\addbibresource{sample.bib}
+\graphicspath{{images/}}
+
+\renewcommand{\familydefault}{\rmdefault}
+\renewcommand{\figurename}{Figure}
+
+\geometry{
+	left=20mm,
+	right=20mm,
+	bindingoffset=0mm,
+	top=30mm,
+	bottom=25mm
+}
+
+\linespread{1.3}
+
+\newcommand{\linia}{\rule{\linewidth}{0.5pt}}
+
+\makeatletter
+\renewcommand{\maketitle}{
+\begin{center}
+	\vspace{2ex}
+	{ \huge \textsc{\@title} }
+	\vspace{1ex}
+	\\ \linia\\ \@author \hfill \@date
+	\vspace{4ex}
+\end{center}
+}
+\makeatother
+
+\setlength{\headheight}{29pt}
+\fancyhead{}
+
+\fancyhead[L]{
+    \begin{tabular}{rl}
+        \begin{picture}(15,10)(0,0)
+            \put(0,-8){
+                \includegraphics[width=8mm, height=8mm]{frauas_logo.png}
+            }
+        \end{picture}
+        &
+        \begin{tabular}{l}
+            \textbf{\bf \ttfamily FRA-UAS}\\
+            \textbf{\bf \ttfamily Department of Computer Science}
+        \end{tabular}
+    \end{tabular}
+}
+
+\fancyhead[R]{
+
+}
+
+\fancyfoot{}
+\fancyfoot[L]{ \ttfamily REAL-TIME TRAFFIC SIMULATION WITH JAVA }
+\fancyfoot[R]{\ttfamily Page \thepage}
+
+\fancypagestyle{plain}{
+    \fancyhead{}
+    \fancyfoot{}
+    \fancyfoot[L]{ \ttfamily REAL-TIME TRAFFIC SIMULATION WITH JAVA }
+    \fancyfoot[R]{\ttfamily Page \thepage}
+}
+
+\renewcommand{\headrulewidth}{0.2pt}
+\renewcommand{\footrulewidth}{0.2pt}
+
+\lstset{
+    language=Java,
+    basicstyle=\ttfamily\small,
+    aboveskip={1.0\baselineskip},
+    belowskip={1.0\baselineskip},
+    columns=fixed,
+    breaklines=true,
+    tabsize=4,
+    prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+    frame=lines,
+    showtabs=false,
+    showspaces=false,
+    showstringspaces=false,
+    keywordstyle=\color[rgb]{0.627, 0.126, 0.941}, % Keywords like int, if, etc.
+    commentstyle=\color[rgb]{1, 0, 0}, % C++ style comments // or /* */
+    stringstyle=\color[rgb]{0.133, 0.545, 0.133}, % String literals
+    numbers=left,
+    numberstyle=\small,
+    stepnumber=1,
+    numbersep=10pt,
+    captionpos=t,
+    escapeinside={\%*}{*)}
+}
+
+\begin{document}
+\begin{titlepage}
+\begin{center}
+    FRA-UAS \\ DEPARTMENT OF COMPUTER SCIENCE
+\end{center}
+
+\vspace{1cm}
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[width=3cm]{images/frauas_logo.png}
+    \end{center}
+\end{figure}
+
+\vspace{2cm}
+
+\begin{center}
+    \begin{tabular}{c}
+        \textbf{\Large REAL-TIME TRAFFIC SIMULATION WITH JAVA} \\
+        \\
+        \\
+        \textbf{\Large SiMpFi}                      \\
+            \vspace{1cm}
+    \end{tabular}
+\end{center}
+
+\vspace{2cm}
+
+\begin{table}[h]
+    \begin{tabular}{rl}
+        \hspace{5.1cm} \textit{Instructor:} & Prof. Dr.-Eng. Ghadi Mahmoudi             \\
+        \\
+        \textit{Student 1:} & Kenji Bischoff - 1402720         \\
+        \textit{Student 2:} & Nguyen Ha Khai - 1650329      \\
+        \textit{Student 3:} & Nguyen Duy Khanh - 1648306 \\
+        \textit{Student 4:} & To Huynh Phuc - 1651780       \\
+        \textit{Student 5:} & Ninh Hoang Quan - 1650910     \\
+    \end{tabular}
+\end{table}
+
+\vspace{2cm}
+\begin{center}
+    { \footnotesize Frankfurt am Main, 1/2026 }
+\end{center}
+\end{titlepage}
+
+\pagestyle{fancy}
+
+\newpage
+\begin{abstract}
+    This report provides progress, purpose, and other detailed informations about simpfi, a real-time traffic simulation app in which users can simulate real-world transportation scenarios and export useful statistics. 
+\end{abstract}
+
+\newpage
+\listoftables
+\listoffigures
+
+\newpage
+\renewcommand{\contentsname}{Contents}
+\vspace{1cm}
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\subsection{Context}
+SUMO - Simulation of Urban MObility - is a traffic simulation tool used to simulate urban transportation scenarios.
+The application is helpful for designers, researchers who design road network and evaluate features such as CO$_2$ levels, traffic congestion rate, etc.
+\subsection{Main Issue}
+Although providing useful functionalities for traffic simulation, SUMO is difficult to utilize effectively. In other words, only users with programming knowledge can benefit greatly from the software. \newline 
+This disadvantage can be observed by the fact that users are required to grasp a basic understanding of SUMO's configurations such as XML files and how to run command lines.
+\subsection{Purpose and Goals}
+In order to address the problem mentioned above, the team aims to create a software that leverages SUMO's features but maintains the simplicity of user interface. That is, people can perform simple operations such as drag-and-drop and clicking buttons to retrieve meaningful detailed information and represent complicated traffic networks. Consequently, more and more designs can be sketched and created quickly, which potentially speeds up one's studies or transportation planning. Furthermore, an increased number of designs means that the urban area may have better transportation plans, thereby reducing traffic congestion and CO$_2$ emissions. \newline
+Regarding study goals, the team plans to master in Object-Oriented Programming concepts and gain more experience with teamwork, writing documents such as javadoc and academic reports.
+\section{Project Overview}
+\subsection{Description}
+The software \textbf{simpfi}, which stands for \textbf{Si}mulation \textbf{M}a\textbf{p} Traf\textbf{fi}c, is a traffic simulation tool used to create and monitor simulated representation of real-world networks. For clarity, the application's core is based on SUMO, but the difference is that it is developed to suit a wider range of target users from non-coders to experts.
+\subsection{Technology Stack}
+There are three main components the team uses for the project: \textbf{Java}, \textbf{TraaS}, and \textbf{SUMO}. \newline
+Additionally, the team uses \textbf{GitHub} to create a shared repository for members to submit codes, and \textbf{Notion} to distribute tasks.
+\subsection{Team Roles}
+The below table shows the main role of each member during the final milestone, note that although these are specific-domain roles, the team tends to overlap the work and responsibilities in order to fully experience how to work in real-world projects:\newline
+\begin{table}[h]
+\centering
+\resizebox{\begin{tabular}{|c|c|p{9cm}|}
+\hline
+ID & Name & Main Role \\
+\hline
+1402720 & Kenji Bischoff & Inspect Panel and File Exporting \\
+\hline
+1650329 & Nguyen Ha Khai & Filter Panel, Copy-On-Write for Multithread Handling, Logging \& Exception Handling, and Drawing Method Enhancement \\
+\hline
+1648306 & Nguyen Duy Khanh & User Interaction \& Controls, Map Visualization \& Rendering, Traffic Light Management, and Traffic Simulation Modes \\
+\hline
+1651780 & To Huynh Phuc & UI Implementation, Multithread and Logging Handling, Testing Method Implementation, and OOP-based Architecture Redesign \\
+\hline
+1650910 & Ninh Hoang Quan & Statistics Implementation, Static vs Adaptive Feedback, Vehicle Management, and Thread Separation \\
+\hline
+\end{tabular}
+}
+\caption{Team Roles}
+\end{table}
+\subsection{Time Plan}
+For the detailed time plan, readers can see our activities in \href{https://www.notion.so/2a62b60367bb80a58886c6713e08ba54?v=2a62b60367bb80db8153000caff77c02&source=copy_link}{this} Notion page: \url{https://www.notion.so/2a62b60367bb80a58886c6713e08ba54?v=2a62b60367bb80db8153000caff77c02&source=copy_link}
+\newpage
+
+\section{Architecture Diagram}
+Here is the architecture diagram of the project:                                  
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/Architecture_final.png} % adjust width
+    \caption{Architecture Diagram}
+    \label{fig:architecture-design}
+\end{figure} \par
+From the diagram, three main layers can be observed: GUI \& Visualization, SUMO Integration, and Data. Each layer provides separate methods in order to guarantee modularity and coherence in the system's design. 
+\subsection{GUI \& Visualization Layer} The main task of this layer is to present a user-friendly UI for users. In particular, it includes map visualization, multiple panels such as \textbf{Inject}, so that users can add vehicles to the network. Additionally, users can move and scale the map by dragging and scrolling the mouse, respectively. 
+\subsection{SUMO Integration (Wrapper) Layer} The layer is where TraCI connection takes place. Put differently, it is the interface where SUMO and wrapper classes communicate with each other. From there, the simulation can be executed, logical operations like numerical calculations can be performed, and network controls can be handled flawlessly. 
+\subsection{Data Handling (HashMap)} As its name suggests, this layer collects simulation data from the SUMO server and stores it in a HashMap, which is essential for exporting meaningful statistics in PDF or CSV files. Also, the layer is developed to ensure the consistency and integrity of data throughout different parts of the system.
+\section{Class Design}
+\subsection{Overview}
+Besides core wrapper classes, the team decided to draw the user interface by defining and connecting classes such as buttons, panels,... As a result, the number of classes was up to 30, which would be excessively complicated and difficult to understand if the team sketch them in one single class diagram. Therefore, a wrapper class diagram was  designed to ensure the conciseness and readability.
+\subsection{Wrapper Class Diagram}
+The class diagram is shown as follows:
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{images/final_class_diagram.png} % adjust width
+    \caption{Wrapper Class Diagram}
+    \label{fig:class-dia}
+\end{figure}
+\par
+\newpage
+
+\subsection{Class Responsibilities}
+\begin{itemize}
+    \item \textbf{EdgeController}: gets the information of edges and vehicles to calculate meaningful statistics such as average speed on a specific edge.
+    \item \textbf{VehicleInjectionController}: controls different types of injections like batch, batch random or single mode.
+    \item \textbf{VehicleController}: its main role is to process and retrieve detailed information regarding vehicles. To achieve this, the class has a \verb|SumoTraciConnection| attribute \verb|connection| used to actively connect to SUMO so that getters such as \verb|getSpeed()|, \verb|getRoadID()| can be implemented. Additionally, \verb|vehicleCounter| and \verb|vehicleMap| are developed to keep tracks of vehicles number and mapping. Furthermore, the class provides several useful methods like \verb|addVehicle()| for users to perform vehicle-related operations.
+    \item \textbf{TrafficLightController}: as its name suggests, the class deals with traffic light objects, especially in the real-time scenarios since it has a live traffic light mapping: \verb|liveTrafficLightStates|. Similar to \verb|VehicleController|, the class establishes a connection with SUMO using the attribute \verb|connection| and therefore is able to implement getters such as \verb|getIDList()|, \verb|getState()|. Besides, \verb|updateTrafficLightState()|, \verb|getLiveTrafficLightStates()| are provided to maintain the logic of SUMO traffic lights in the Simpfi's map.
+    \item \textbf{SumoConnectionManager}: is the class that creates and manages the TraCI connection between SUMO and the project's app. This is achieved by passing a XML configuration file to its constructor and then the program can initialize the connection by \verb|getConnection()| method and close it safely later using \verb|close()|. Moreover, it provides an \textit{important} method \verb|doStep()| which advances the simulation by one timestep.
+    \item \textbf{App}: is where the main function resides. Particularly, it connects the frontend (\verb|mapPanel|) and the backend (\verb|vehicleController|, \verb|trafficLightController|, ...); defines the TraCI connection; and handles the connection loop so that the software can function properly. Moreover, it is where multi-threading takes place.
+\end{itemize}
+
+\section{GUI Mockups}
+Below is the intended final user interface of the project:
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/GUI_final.png} % adjust width
+    \caption{User Interface}
+    \label{fig:user-interface-mockups}
+\end{figure}
+\par
+
+
+\section{User Guide}
+\subsection{Introduction}
+\subsubsection{Overview}
+This application provides a simple graphical interface for controlling, visualizing, and analyzing SUMO traffic simulations. Users can inject traffic, program traffic lights, and monitor simulation statistics in real time.
+\subsubsection{Target Audience}
+Our project is aimed at users working with traffic and urban mobility simulations, such as:
+\begin{itemize} 
+\item Designers.
+\item Transportation Researchers.
+\item Environmental Analysts.
+\item Students.
+\end{itemize}
+\subsubsection{Features}
+\begin{itemize}
+\item Real Time Map Visualization.
+\item UI including:
+\begin{itemize}
+    \item Vehicle Injection
+    \item Vehicle Inspection and Filtering
+    \item Traffic Light Programming
+    \item Statistics Panel
+    \item Map View settings
+\end{itemize}
+\end{itemize}
+
+\subsection{Setup}
+
+\subsubsection{Software Requirements}
+\begin{enumerate}
+    \item Java 17 (JDK) or higher.
+    \item SUMO software.
+    \item IDE for Java.
+\end{enumerate}
+\subsubsection{Installation Guide}
+Make sure that you download the versions compatible with your operating system.
+\begin{enumerate}
+\item Install Java Development Kit (JDK from oracle).
+\item Install SUMO (Simulation of Urban MObility).
+\item Install an IDE of your choice to run the Java project (Eclipse, VSCode, IntelliJ, ...).
+\item Install \verb|flatlaf-3.6.2.jar|, \verb|jcommon-1.0.23|, \verb|jfreechart-1.0.19|, \verb|TraaS|.
+\end{enumerate}
+
+\subsubsection{Project Setup}
+The last step of the setup is to download our project by cloning it from GitHub. After that, open it up in your IDE. 
+\newline
+For running the application, simply run the class "App.java".
+\newpage
+\clearpage
+\subsection{User Handbook}
+The application window will be divided into 2 main sections: (1) Map Panel on the right side and (2) Control Panel on the left side.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/UI.png} % adjust width
+    \caption{Navigating UI}
+    \label{fig:user-interface}
+    \end{figure}
+The \textbf{Map Panel} can be manipulated in 2 ways:
+\begin{itemize}
+    \item Move around with arrow keys, zoom in with “Ctrl =” and zoom out with “Ctrl –” (Not recommended since arrow keys can also be used to move around in the Control Panel and differences between US keyboard layout and German keyboard layout makes zooming more difficult).
+    \item Move around by clicking and dragging the map area, zoom in by scrolling up and zoom out by scrolling down (Recommended).
+\end{itemize}
+
+The \textbf{Control Panel} have six sub-panels with different features:
+
+
+\subsubsection{Statistics}
+Shows a variety of charts that is updated in real time with statistics from the running simulation:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/StatsPanel.png} % adjust width
+    \caption{Stastistics Panel}
+    \label{fig:stats-panel}
+    \end{figure}
+
+\subsubsection{Inject}
+In the Inject Panel, there are four Dropdowns and one button to add vehicle to the network:
+    \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/InjectPanel1.png} % adjust width
+    \caption{Inject Panel Interface}
+    \label{fig:inject-interface}
+    \end{figure}
+Before injection, users have to choose one of three modes: batch on route, batch random, and single. Batch On Route means that users can inject any number of vehicles they want on a specific route chosen from the Route Dropdown. For the Batch Random mode, users are allowed to add any number of vehicles to random routes. The last mode is Single mode, for which users can only inject one vehicle on one route.
+
+After choosing the mode, users have to set a value indicating the number of vehicles that they want to inject. This Dropdown only appears when a chosen mode is Batch On Route or Batch Random. 
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{images/InjectPanel2.png} % adjust width
+%     \caption{Choosing number of vehicles to inject in Inject Panel}
+%     \label{fig:inject-vnumber-choosing-button}
+%     \end{figure}
+The third Dropdown is Vehicle Type, where users can choose one of five vehicle types. Each vehicle is colored differently depending on its type.
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.7\textwidth]{images/InjectPanel3.png} % adjust width
+%     \caption{Vehicle-type dropdown in Inject Panel}
+%     \label{fig:vehicle-type-dropdown}
+%     \end{figure}
+Next, users have to specify which route they want their vehicles to run. This Dropdown appears only when a mode is Batch On Route or Single.
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{images/InjectPanel4.png} % adjust width
+%     \caption{Choosing the route in Inject Panel}
+%     \label{fig:inject-route-choosing-dropdown}
+%     \end{figure}
+Finally, users press the button "Adding vehicle" to start the process.
+
+\subsubsection{Map View}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/MapViewPanel.png} % adjust width
+    \caption{Map View Panel Interface}
+    \label{fig:map-view-interface}
+\end{figure}
+In the Map View panel, user can change many settings about the display of the map such as how big the elements are or what color is used. \textbf{Note} that set the “Simulation Speed” too high is not intended and can have unexpected consequences.
+
+\subsubsection{Program Lights}
+ In this panel, users can interact with traffic lights in the network. To start with, users need to identify the traffic lights they want by selecting the traffic light ID in “Select intersection”.
+
+After a intersection is chosen, one of its connections is highlighted. The intersection between two lanes connection is the junction that users choose. 
+If users want to see other connections, simply select them in “Connection”.
+For example, another connection becomes highlighted after being selected:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/PLPanel4.png} % adjust width
+    \caption{Choosing another connection in the same Intersection}
+    \label{fig:14}
+\end{figure}
+If users want to view all the information including the state of the traffic light, the current phase, the signal of each connection, and the remaining time of the current duration, Users can click on “Show information”.
+
+After that, a pop-up dialog will appear on the screen and update by real time in traffic light. And the signal of traffic light will represent the status light of that connection. Here “r” is red, “y” is yellow, and “g” is green. Sometimes, users will see big “G”, which represents for green light, but higher priority than “g”.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{images/PLPanel6.png} % adjust width
+    \caption{Information DiaLog in Program Lights Panel}
+    \label{fig:16}
+\end{figure}
+If users want to switch the desired phases immediately. First, users need to choose the traffic light ID in “Select intersection” and then choose the phase number in “Phase” and click “Switch Phase” after that to trigger the event.
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{images/PLPanel7.png} % adjust width
+%     \caption{Phase Switching in Program Lights Panel}
+%     \label{fig:17}
+% \end{figure}
+Similarly, if users want to set new duration for specific phases of the traffic light. First, select traffic light ID in “Select intersection”. And then select the phase user want to choose in “Phase”. Then enter the time value which is the new duration for the phase user choose. And finally, click “Change Duration”.
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{images/PLPanel8.png} % adjust width
+%     \caption{Change Duration in Program Lights Panel}
+%     \label{fig:18}
+% \end{figure}
+Additionally, this panel introduce two different traffic light modes: static and adaptive mode. Users can freely switch between two modes by clicking “Change to Adaptive Mode” or “Change to Static Mode”.
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{images/PLPanel9.png} % adjust width
+%     \caption{Adaptive and Static Mode in Program Lights Panel}
+%     \label{fig:19}
+% \end{figure}
+Here “Static Mode” is when the logic or program of the traffic light is predefined from the \textit{XML} file. So, there is no change in the definition of the program (e.g. phases, states, signals, duration, etc.). If users tend to choose the mode to “Adaptive" mode. The traffic light may change based on the congestion of the traffic. Here, the team added the logic that if any traffic light has the lane which the number of vehicles of that lane is larger than 2, then the duration of current phase of that traffic light is increased to 5 (In other words, take the default duration and plus 5). This helps users to track the traffic and have a comparison between static mode and adaptive mode.
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.6\textwidth]{images/PLPanel10.png} % adjust width
+%     \caption{Comparisons between Adaptive and Static Mode}
+%     \label{fig:20}
+% \end{figure}
+
+
+
+
+\subsubsection{Filter}
+This panel provides three main features:
+\begin{itemize}
+    \item \verb|vehicle-type filter|: users can see a list of checkboxes showing different types of vehicles. Vehicles whose type is not ticked will not be painted on the map.
+    
+    \item \verb|road filter|: with this filter, users are able to filter out roads, which are the combinations of edges and their sub-edges(not include junction edges). Designed similarly like the \verb|vehicle-type filter|, users check the boxes to opt in roads where vehicles are visible. The only difference is that users can enter the mouse into each checkbox to see the corresponding road. For example, \verb|E45| is entered:
+    \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/FilterPanel3.png} % adjust width
+    \caption{Map when entering the mouse into E45}
+    \label{fig:enter-road}
+    \end{figure}
+    
+    Then when E45 is unticked, vehicles become invisible in that road:
+    \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/FilterPanel4.png} % adjust width
+    \caption{Map when unticking E45}
+    \label{fig:filter-road}
+    \end{figure}
+    
+
+    \item \verb|speed filter|: Different from the two previous filters, this filter use a range slider to filter out vehicles within a specific range. The defined range is set from 0 to 60(m/s), which is derived from German speed limits. Users can drag two thumbs to set the desired speed range for visible vehicles.
+\end{itemize}
+
+
+\subsubsection{Inspect and Export} 
+With the \textbf{Inspect and Export Panel}, users can select vehicles directly from the Simulation by clicking on it. Users can also export simulation statistics to CSV or generate a PDF containing metrics and a congestion chart. \\
+The user can switch between two modes by pressing the \textbf{Change Mode} Button on the bottom: \\
+The \textbf{Pan mode} is used to drag the map around. After changing to the \textbf{Select mode}, the user will be able to select a vehicle on the map by clicking on it.\\
+The list on the top left of the panel shows the currently selected Vehicles. To the right there is a \textbf{Select All button} to select all vehicles, which are currently in the Simulation. Use the \textbf{Clear button} below to clear the List.\\
+If the user chooses a selected vehicle from the upper box, this element will be highlighted and the corresponding stats will show in the lower Box.\\
+The list can also be sorted by using the Group By dropdown. The user can group the selected vehicles by \textbf{Vehicle Type}, \textbf{Color}, \textbf{Speed} or \textbf{Route}. To see the list without grouping, select \textbf{None}.\\
+The stat \textbf{Vehicle Type} shows one of the following vehicles:
+Bus (blue), Emergency (orange), Motorcycle (pink), Private (yellow), Truck (grey).\\
+The stat \textbf{Color} shows the color in an RGB format, representing the Color components Red, Green, Blue from 0 to 255. 
+Example: R:255, G:0, B:0 --> maximum (255) amount of Red, 0 Green and Blue\\
+The \textbf{Speed} is the only dynamic statistic in the list. It gets updated every 500ms. The speed is given in km/h.\\
+\textbf{Max Speed} shows the maximum speed the vehicle reaches in the simulation. \\
+\textbf{Acceleration} is given in m/s$^2$.\\
+The \textbf{Distance Traveled} stat shows the covered distance in this simulation and is given in meters.\\
+The \textbf{Route} stat shows the connected edges forming the vehicles route.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/inspect panel.png} % adjust width
+    \caption{Inspect Panel}
+    \label{fig:Inspect Panel}
+    \end{figure}
+As you can see in the picture, the list is currently grouped by Vehicle Type. Each batch of vehicles with the same type are headed with their types name. \\
+There are various options for exporting simulation data. The first option enables users to select between exporting all vehicles either to CSV or as PDF by clicking on \textbf{Export All CSV} or \textbf{Export All PDF}.
+When wishing to export only the selected vehicles showing in the list, the user can either use the \textbf{Export CSV} or \textbf{Export PDF} button.
+For the export of specific vehicles, the user can use the \textbf{Filtered Export} button. It opens up a new window, in which the user can filter the export data by using the tickboxes and the traveled distance range feature.
+The user can hover over the filters for more information. 
+When finished with the filtering, the user can export the data via CSV or as PDF.
+When exporting, the File Chooser pops up to enable the user to save their data at the desired spot.
+The CSV file contains the Vehicle ID, vehicle type, speed, maximum speed, acceleration, distance and route values for each vehicle.
+The PDF contains the same information, just without the route data. In addition it contains a chart, which shows what edges in the simulation are \textbf{congested}. There need to be \textbf{five or more vehicles on an edge} for it to count as \textbf{congested}. Without this condition it will just show that the vehicles are not available (N/A). The chart shows which edges have how many vehicles on it at the time of the export. 
+The different colors of the graph indicate hiow heavily the edge is congested (green = low, yellow = medium, red = high).
+Here you can see how the filtered export dialog looks like:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/Filtered Export.png} % adjust width
+    \caption{Filtered Export on Inspect Panel}
+    \label{fig:Inspect Panel}
+    \end{figure}
+
+
+\subsection{Technical Description}
+\subsubsection{Threading and Concurrency}
+The project used three main threads:
+\begin{itemize}
+    \item UI Thread: Its main job is to update the visual display (\verb|MapPanel|). Besides that, it uses \verb|SwingUtilities.invokeLater()| to ensure all updates happen on the Event Dispatch Thread (EDT) for thread safety.
+    \item Simulation Thread: Advances the SUMO simulation, runs the main simulation loop at a controlled timestep. Moreover, it uses a lock to ensure thread-safe access to shared resources.
+    \item Data Thread: Monitors when the simulation steps forward, updates traffic statistics after each simulation step, ... Most importantly, it updates vehicles and traffic lights data for controllers and snapshot.
+\end{itemize}
+\subsubsection{Error Handling and Exceptions}
+Proper logging was implemented thoroughly via \verb|java.util.logging.Logger|. In the source code, readers can also observe a \verb|logging.properties| file used to set up the suitable logging level for each package and define writing approaches (write to files and consoles). In particular, messages can be viewed in \verb|app.log| located in the \verb|logs| folder. \newline
+In addition to error handling, the team created a customized exception \verb|InvalidNetworkConfigurationException|. It is thrown when the returned network does not meet essential requirements (e.g. missing edges). By developing own exception, the team benefited from its semantic meaning and there it aided to locate the errors more efficiently.
+\subsubsection{Performance Improvements}
+Previously, the entire map is repainted after a certain period of time, which can be resource-wasting if some components never move. In order to improve that, the team defined static layer including edges and junctions to avoid repainting it unless specific interactions from users happen like zooming the map. Also, vehicles outside the map will also not be drawn (lazy drawing), which lessen the work effectively. \newline
+Additionally, copy-on-write are implemented to draw the user interface without having another lock in \verb|MapPanel.java|
+Furthermore, the project is redesigned to leverage more OOP concepts such as interface (\verb|Drawable.java|). Also, the team restructured files in order to enhance the cleanliness of code.
+
+\subsubsection{Technical Description - UI design}
+In order to render the main map along with other core features, the team leveraged basic components (\verb|JButton|, \verb|JPanel|,...) which extends Java Swing classes and overrode \verb|paintComponent()| method. This approach gave the team a great opportunity to customize and design the visuals of traffic components such as edges, traffic lights, vehicles,...\newline
+Nevertheless, since there are only a few selections of built-in UI components to choose from, more efforts must be made when the team attempted to include advanced features in the application. For example, \verb|RangeSlider|, which is available in \verb|JavaFX|, must be implemented manually by one of the team members to meet the functional requirements.
+
+\subsubsection{Technical Description – Statistics Panel}  
+In the Statistics feature, the average speed, vehicle density per edge, and travel time distribution are visualized by 3 live charts: line chart, bar chart, and histogram. First of all, the average speed is computed by summing all vehicles’ velocities and dividing by the number of vehicles running on the network via the getAverageSpeed() method. The second data is the traffic density, which simulates the density of vehicles on each edge using a bar chart and results in congested hotspots – 3 edges with the largest number of vehicles. Particularly, the number of vehicles is collected on each edge per step by traversing all edge IDs and storing them in a hash map, which is the edgeVehicleCount. Then, this data is put into the vehicleDataset for plotting a live bar chart. Finally, the travel time data is computed by subtraction of the current step from the start step. Then, it is stored in a list travelTimes for the travel time distribution visualization.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/techStats.png} % adjust width
+    \caption{Statistics Panel}
+    \label{fig:tech-stats-panel}
+    \end{figure}
+
+\subsubsection{Technical Description – Inject Panel}  
+The InjectPanel class is a Java Swing-based user interface for injecting vehicles. It inherits the Panel class and allows for selection of vehicle types, routes, injection mode, and the number of vehicles to inject. 
+The InjectPanel allows users to dynamically inject vehicles into a network during simulation time. It supports three modes of injection: 
+\begin{itemize}
+    \item \textbf{Batch On Route} – inject multiple vehicles across a specific route
+    \item \textbf{Batch Random} – inject multiple vehicles across a network
+    \item \textbf{Single} – inject a selected vehicle across a chosen route
+
+\end{itemize}
+
+The image below shows 5 key components of the Inject Panel feature:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/techInject.png} % adjust width
+    \caption{Inject Panel}
+    \label{fig:tech-filter-panel}
+    \end{figure}
+\begin{enumerate}
+    \item \textbf{Mode Dropdown (modeDropdown)}: Provides 3 options – Batch On Route, Batch Random, and Single. It determines whether users want to inject multiple vehicles into a selected or a random route, or even a single vehicle into a specific route when clicking on the “Add vehicle” button.
+    \item \textbf{Count Field (countField)}: Provides a text area allowing users to type any number of vehicles they want to add to a network in batch modes. In a single mode, it is hidden dynamically.
+    \item \textbf{Vehicle Type Dropdown (vehicleTypeDropdown)}: allows users to select a vehicle type from a list of vehicle types obtained from Settings.network.getVehicleTypes(), which is wrapped by the getAllVehiclesTypesAsString() method.
+    \item \textbf{Route Dropdown (routeDropdown)}: allows users to select a route for vehicle injection from a list of route IDs achieved from Settings.network.getRoutes(), which is wrapped by the getAllRouteIdsAsStrings() method.
+    \item \textbf{Add Vehicle button (addVehicleBtn)}: Executes the vehicle injection process via mouse click in a separate Thread to prevent blocking the EDT from Java Swing. 
+\end{enumerate}
+The addVehicle() method handles vehicle injection and reads users’ input for vehicle mode, vehicle count, vehicle type, and route. Then the method executes a thread for injection and divides three modes into three cases using three different methods obtained from the VehicleInjectionController class.
+
+\subsubsection{Technical Description – Map View Panel}  
+In the map view panel, many attributes of the map can be changed freely by the user. This is possible by updating an internal variable that can be accessed by all classes and functions so that the map drawing can be consistent. In order to implement the "Reset defaults" button, another list of constants are stored with the default values, and when the button is pressed, all properties of the map are set to the original default value.
+
+\subsubsection{Technical Description – Program Lights Panel} 
+The Program Light Panel provides access to all traffic light information, including the junction ID, all lane connections, and the traffic light programs defined in SUMO. These attributes are retrieved through SUMO’s junction calls. Since the drawing interacts with the SUMO API (TrasS), traffic light states can be changed dynamically by calling the SUMO traffic light interface. User interface elements such as drop-down menus, buttons, text areas, and dialogs are implemented by extending Java Swing classes. The remaining duration of the current phase of specific traffic light is computed by retrieving the next switch time from SUMO and subtracting it by the current time. The signal of each traffic light connection is parsed from the traffic light state String by splitting it into individual characters, where each character represents the signal assigned to a specific connection. Moreover, to ensure consistency and accuracy, both the remaining duration and the signal of the traffic light are updated in real-time and displayed in “Show Information”. Finally, in order to implement the logic of "Adaptive mode", the map is continuously updated in real time. In this mode, the update logic adjusts the traffic light phase duration based on the current traffic flow conditions, enabling the system to adapt automatically and maintain flexible traffic signal control.
+
+\subsubsection{Technical Description – Filter Panel}
+For the implementation of the first two filters(vehicle-tpye and road), the team defined a \verb|filterFlag| in \verb|VehicleType.java| and \verb|Road.java|. After creating the dropdowns, which extend \verb|JComboBox|, listeners were added to those components to update the \verb|filterFlag| when there are updates. As a result, the map will only draw vehicles whose \verb|filterFlag| is set to \verb|true|.\newline
+In addition to two filters above, speed filter is implemented in a more simple approach, since each vehicle already has its own \verb|getSpeed()| method and the code just needs to check if its speed falls within the limited range before drawing. However, the difficult part is the Range Slider, which is not supported in Java Swing. Therefore, the team developed a new \verb|RangeSlider| object that inherits from \verb|JComponent| to display it and let users freely choose the desired speed range. Furthermore, the maximum speed was set to 60 m/s manually because the team could not find any specific documentation about vehicles' maximum velocity in SUMO, so this figure was decided based on our research about speed limits in Germany. 
+
+\subsubsection{Technical Description – Inspect and Export Panel}
+
+The Inspect and Export Panel allows users to inspect the vehicles in the simulation. Users can toggle between two modes:
+\begin{itemize}
+    \item \textbf{Pan Mode}: Enables map navigation by dragging.
+    \item \textbf{Select Mode}: Allows selecting a vehicle on the map with a click.
+\end{itemize}
+It also enables the user to export simulation data via CSV or as PDF.
+The \textbf{Select Mode} feature is realized by a Mouse Listener to get the coordinates of the selected part of the map. These coordinates are then translated to world coordinates to be utilized to find the nearest vehicle in a range of 20 units.
+
+The top-left list displays the currently selected vehicles. Users can use the \textbf{Select All} button to select all vehicles in the simulation or the \textbf{Clear} button to clear the list. Selecting a vehicle from the list marks it and shows its statistics in the lower box.
+The list can be sorted using the Group By dropdown. Users can group the selected vehicles by Vehicle Type, Color, Speed, or Route. To display the list without grouping, select None. The speed headers, which appear when grouping by route are not updated live, because this would be too demanding.
+
+Displayed vehicle statistics include:
+\begin{itemize}
+    \item \textbf{Vehicle Type}: Bus, Emergency, Motorcycle, Private, Truck.
+    \item \textbf{Color}: RGB format (0-255) representing Red, Green, and Blue components.
+    \item \textbf{Speed}: Updated every 500 ms, in km/h.
+    \item \textbf{Max Speed}: Maximum speed reached during the simulation.
+    \item \textbf{Acceleration}: In m/s$^2$.
+    \item \textbf{Distance Traveled}: Covered distance in meters.
+    \item \textbf{Route}: Sequence of connected edges forming the vehicle’s route.
+\end{itemize}
+
+Simulation data can be exported by using the five buttons on the right hand side below the Group by dropdown. For exporting only the selected vehicles, there are the two buttons \textbf{Export CSV} and \textbf{Export PDF}. The buttons \textbf{Export All CSV} and \textbf{Export all PDF} export the data of all vehicles, which are currently in the simulation. 
+The \textbf{Filtered Export} button opens up a dialog with various tickboxes and filters:
+\begin{itemize}
+    \item \textbf{Include Big Vehicles}: Includes trucks, buses and emergency vehicles.
+    \item \textbf{Include Small Vehicles}: Includes private vehicles and motorcycles.
+    \item \textbf{Include Private Vehicles}: Include vehicles with the VehicleType private.
+    \item \textbf{Include Commercial}: Includes trucks and buses.
+    \item \textbf{Active Vehicles Only}: Include only vehicles, that are still active in the simulation. 
+    \item \textbf{Distance}: Select a minium and maximum traveled distance to filter vehicles by distance.
+    \item \textbf{Congested Edges}: Only select vehicles on a "congested edge", where the number of vehicles >= Threshold (default = 5). 
+\end{itemize}
+The data selected can then be exported via CSV or as PDF. Clicking on any of the export buttons opens up the File Chooser, where the user gets a suggested file name, with a file extension enforcement, which secures the file ending to be either \textbf{.csv} or \textbf{.pdf}.
+The CSV file contains the Vehicle ID, vehicle type, speed, maximum speed, acceleration, distance and route data for each vehicle.
+The PDF contains  the Vehicle ID, vehicle type, speed, maximum speed, acceleration and distance traveled data. The PDF also contains a chart, which shows the congested edges. The chart only shows edges with five or more vehicles on it. It shows the Edge ID and how many vehicles are on it at the time of the export. The color of the graph indicates congestion (green = low, yellow = medium, red = high).
+
+
+\section{Conclusion}
+The team has successfully completed the project within a given deadline and gained invaluable knowledge and experience through this. This is 
+\end{document}
