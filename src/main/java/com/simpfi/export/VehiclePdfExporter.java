@@ -74,7 +74,6 @@ public class VehiclePdfExporter {
 		document.add(table);
 		document.add(Chunk.NEWLINE);
 
-		// Chart: Congestion pro Edge & Vehicle Type
 		Image chartImage = createCongestionChart(writer, vehicles, congestionThreshold);
 		chartImage.setAlignment(Element.ALIGN_CENTER);
 		document.add(chartImage);
