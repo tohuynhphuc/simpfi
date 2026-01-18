@@ -693,11 +693,11 @@ public class InspectPanel extends Panel {
 
         Panel distancePanel = new Panel();
         distancePanel.setLayout(new BoxLayout(distancePanel, BoxLayout.X_AXIS));
-        distancePanel.add(new Label("Distance (km): min"));
+        distancePanel.add(new Label("Distance (m): min"));
         TextBox minDistanceField = new TextBox(0, true, true);
         distancePanel.add(minDistanceField);
         distancePanel.add(new Label("max"));
-        TextBox maxDistanceField = new TextBox(1000, true, true);
+        TextBox maxDistanceField = new TextBox(500, true, true);
         distancePanel.add(maxDistanceField);
         dialog.add(distancePanel);
         dialog.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -761,6 +761,12 @@ public class InspectPanel extends Panel {
             CheckBox congestedEdgesCheck,
             TextBox congestionThresholdField
     ) {
+        // Pause live speed updates to avoid SUMO access during export (crash source)
+        if (speedUpdateTimer != null) {
+            speedUpdateTimer.stop();
+        }
+
+
         int threshold = (int) parseDouble(congestionThresholdField.getText(), 5);
 
         List<Vehicle> filtered = getFilteredVehicles(
@@ -769,8 +775,8 @@ public class InspectPanel extends Panel {
                 privateVehiclesCheck.isSelected(),
                 commercialVehiclesCheck.isSelected(),
                 activeOnlyCheck.isSelected(),
-                parseDouble(minDistanceField.getText(), 0) * 1000,
-                parseDouble(maxDistanceField.getText(), Double.MAX_VALUE) * 1000,
+                parseDouble(minDistanceField.getText(), 0),
+                parseDouble(maxDistanceField.getText(), Double.MAX_VALUE),
                 congestedEdgesCheck.isSelected(),
                 threshold
         );
@@ -793,9 +799,17 @@ public class InspectPanel extends Panel {
                 ex.printStackTrace();
             }
         }
+        // Resume live speed updates
+        if (speedUpdateTimer != null) {
+            speedUpdateTimer.start();
+        }
+
     }
     /**
      * Returns a list of vehicles filtered according to the provided criteria.
+     *
+     * A snapshot of the current vehicle list is used to prevent race conditions
+     * with the running simulation thread (e.g. SUMO updates).
      *
      * @return List of vehicles matching the filter criteria
      */
@@ -810,43 +824,45 @@ public class InspectPanel extends Panel {
             boolean congestedEdges,
             int congestionThreshold
     ) {
-        return VehicleController.getVehicles().stream()
+        // Take a snapshot to avoid concurrent modification during simulation updates
+        List<Vehicle> snapshot = new ArrayList<>(VehicleController.getVehicles());
+
+        return snapshot.stream()
                 .filter(v -> {
 
-                    // Vehicle Type OR-Logic
-                    boolean typeAllowed = true;
+                    // ===== Vehicle Type OR-Logic =====
+                    boolean typeAllowed = false;
+                    String typeId = v.getType().getId().toLowerCase();
 
-                    if (includeBig || includeSmall || includePrivate || includeCommercial) {
-                        typeAllowed = false;
-                        String typeId = v.getType().getId().toLowerCase();
+                    // Big vehicles = trucks, buses, emergency
+                    if (includeBig && (typeId.contains("truck") || typeId.contains("bus") || typeId.contains("emergency"))) {
+                        typeAllowed = true;
+                    }
 
-                        if (includeBig && (typeId.contains("truck") || typeId.contains("bus") || typeId.contains("emergency"))) {
-                            typeAllowed = true;
-                        }
+                    // Small vehicles = private cars and motorcycles
+                    if (includeSmall && (typeId.contains("private") || typeId.contains("motor"))) {
+                        typeAllowed = true;
+                    }
 
-                        if (includeSmall && (typeId.contains("car") || typeId.contains("bike") || typeId.contains("motor"))) {
-                            typeAllowed = true;
-                        }
+                    // Commercial vehicles = trucks and buses
+                    if (includeCommercial && (typeId.contains("truck") || typeId.contains("bus"))) {
+                        typeAllowed = true;
+                    }
 
-                        if (includePrivate && (typeId.contains("car") || typeId.contains("motor"))) {
-                            typeAllowed = true;
-                        }
-
-                        if (includeCommercial && (typeId.contains("truck") || typeId.contains("bus"))) {
-                            typeAllowed = true;
-                        }
+                    // Private vehicles = private cars that are not commercial
+                    if (includePrivate && typeId.contains("private")) {
+                        typeAllowed = true;
                     }
 
                     if (!typeAllowed) return false;
 
-
-                    // ===== Active =====
+                    // ===== Active Filter =====
                     if (activeOnly && !v.getIsActive()) return false;
 
-                    // ===== Distance =====
+                    // ===== Distance Filter =====
                     if (v.getDistance() < minDistance || v.getDistance() > maxDistance) return false;
 
-                    // ===== Congestion =====
+                    // ===== Congestion Filter =====
                     if (congestedEdges && !isOnCongestedEdge(v, congestionThreshold)) return false;
 
                     return true;
@@ -877,7 +893,9 @@ public class InspectPanel extends Panel {
         Edge edge = v.getEdgeFromRoadID();
         if (edge == null) return false;
 
-        long vehicleCount = VehicleController.getVehicles().stream()
+        List<Vehicle> snapshot = new ArrayList<>(VehicleController.getVehicles());
+
+        long vehicleCount = snapshot.stream()
                 .filter(veh ->
                         veh.getIsActive() &&
                                 veh.getRoadID() != null &&
