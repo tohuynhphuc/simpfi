@@ -7,10 +7,6 @@ import java.io.FileOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.awt.Paint;
-
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
@@ -68,7 +64,6 @@ public class VehiclePdfExporter {
         document.add(table);
         document.add(Chunk.NEWLINE);
 
-        // Chart: Congestion pro Edge & Vehicle Type
         Image chartImage = createCongestionChart(writer, vehicles, congestionThreshold);
         chartImage.setAlignment(Element.ALIGN_CENTER);
         document.add(chartImage);

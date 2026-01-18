@@ -89,7 +89,7 @@ public class InspectPanel extends Panel {
 
             // ignore header
             if (value.startsWith("---")) {
-                vehicleList.clearSelection(); // deselect
+                vehicleList.clearSelection();
                 return;
             }
 
@@ -234,7 +234,7 @@ public class InspectPanel extends Panel {
                 }
 
                 try {
-                    int threshold = 5; // Default-Wert für congested edges
+                    int threshold = 5; // default value for congested edges
                     VehiclePdfExporter.exportVehicles(selectedVehicles, file, threshold);
 
                     JOptionPane.showMessageDialog(
@@ -322,10 +322,8 @@ public class InspectPanel extends Panel {
         // Stats Panel
         statsScrollPane = new ScrollPane();
         statsScrollPane.setPreferredSize(new Dimension(300, 200));
-        // vehicleTextBoxes = new ArrayList<>();
         vehicleStaticLabels = new ArrayList<>();
 
-        // Vehicle Type Label
         Label headerVehicleTypeLabel = new Label("Vehicle Type");
         headerVehicleTypeLabel.setFont(headerVehicleTypeLabel.getFont().deriveFont(Font.BOLD));
         statsScrollPane.addItem(headerVehicleTypeLabel);
@@ -337,7 +335,6 @@ public class InspectPanel extends Panel {
         statsWrapper.add(statsScrollPane);
         contentPanel.add(statsWrapper);
 
-        // Color Label
         Label headerColorLabel = new Label("Color");
         headerColorLabel.setFont(headerColorLabel.getFont().deriveFont(Font.BOLD));
         statsScrollPane.addItem(headerColorLabel);
@@ -346,7 +343,6 @@ public class InspectPanel extends Panel {
         statsScrollPane.addItem(colorLabel);
         vehicleStaticLabels.add(colorLabel);
 
-        // Speed Label
         Label headerSpeedLabel = new Label("Speed (km/h)");
         headerSpeedLabel.setFont(headerSpeedLabel.getFont().deriveFont(Font.BOLD));
         statsScrollPane.addItem(headerSpeedLabel);
@@ -355,7 +351,6 @@ public class InspectPanel extends Panel {
         statsScrollPane.addItem(speedLabel);
         vehicleStaticLabels.add(speedLabel);
 
-        // Max Speed Label
         Label headerMaxSpeedLabel = new Label("Max Speed (km/h)");
         headerMaxSpeedLabel.setFont(headerMaxSpeedLabel.getFont().deriveFont(Font.BOLD));
         statsScrollPane.addItem(headerMaxSpeedLabel);
@@ -364,7 +359,6 @@ public class InspectPanel extends Panel {
         statsScrollPane.addItem(maxSpeedLabel);
         vehicleStaticLabels.add(maxSpeedLabel);
 
-        // Acceleration Label
         Label headerAccelerationLabel = new Label("Acceleration (m/s^2)");
         headerAccelerationLabel.setFont(headerAccelerationLabel.getFont().deriveFont(Font.BOLD));
         statsScrollPane.addItem(headerAccelerationLabel);
@@ -382,7 +376,6 @@ public class InspectPanel extends Panel {
         statsScrollPane.addItem(distanceLabel);
         vehicleStaticLabels.add(distanceLabel);
 
-        // Route Label
         Label headerRouteLabel = new Label("Route");
         headerRouteLabel.setFont(headerRouteLabel.getFont().deriveFont(Font.BOLD));
         statsScrollPane.addItem(headerRouteLabel);
@@ -409,7 +402,7 @@ public class InspectPanel extends Panel {
 
         this.add(bottomPanel, BorderLayout.SOUTH);
 
-        // SELECT MODE feature realized by mouselistener
+        // select mode feature realized by mouselistener
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -673,7 +666,7 @@ public class InspectPanel extends Panel {
         dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
         dialog.setPreferredSize(new Dimension(400, 400));
 
-        //Vehicle Type Checkboxes
+        //vehicle type checkboxes
         CheckBox bigVehiclesCheck = new CheckBox("Include Big Vehicles", false);
         CheckBox smallVehiclesCheck = new CheckBox("Include Small Vehicles", false);
         CheckBox privateVehiclesCheck = new CheckBox("Include Private Vehicles", false);
