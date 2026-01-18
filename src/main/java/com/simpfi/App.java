@@ -96,7 +96,7 @@ public class App {
 	 */
 	private static volatile Double remaining;
 
-	public static ReentrantLock lock = new ReentrantLock();
+	public static final ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * Main function and starting point of application. Sets up TraCI connection,
@@ -164,8 +164,9 @@ public class App {
 					// }
 
 					long end = System.nanoTime();
-					logger.log(Level.INFO, "Simulation step time (ms): {0}", (end - start) / 1_000_000.0);
-					logger.log(Level.INFO, "but the step time should be: {0}", stepMs);
+					// logger.log(Level.INFO, "Simulation step time (ms): {0}", (end - start) /
+					// 1_000_000.0);
+					// logger.log(Level.INFO, "but the step time should be: {0}", stepMs);
 
 					long sleep = next - System.currentTimeMillis();
 					if (sleep > 0)
@@ -231,7 +232,7 @@ public class App {
 
 					long uiEnd = System.nanoTime();
 					long threadTime = (long) ((uiEnd - uiStart) / 1_000_000.0);
-					logger.log(Level.INFO, "Data thread time (ms): {0}", threadTime);
+					// logger.log(Level.INFO, "Data thread time (ms): {0}", threadTime);
 
 				} catch (Exception e) {
 					logger.log(Level.SEVERE, "Data Thread failed", e);
@@ -255,8 +256,8 @@ public class App {
 						mapPanel.repaint();
 
 						long uiEnd = System.nanoTime();
-						logger.log(Level.INFO, "\033[96mUI drawing time (ms): {0}\033[39m",
-							(uiEnd - uiStart) / 1000000.0);
+						// logger.log(Level.INFO, "\033[96mUI drawing time (ms): {0}\033[39m", (uiEnd -
+						// uiStart) / 1000000.0);
 					});
 
 					Thread.sleep(33);
@@ -296,28 +297,34 @@ public class App {
 	 * @throws Exception if the connection fails
 	 */
 	private static void retrieveData(SumoConnectionManager sim) throws Exception {
-		VehicleController.disableAllVehicles();
+		lock.lock();
+		try {
+			System.out.println("Disabling...");
+			VehicleController.disableAllVehicles();
 
-		List<String> allVehicleIds = vehicleController.getAllVehicleIds();
-		for (String vid : allVehicleIds) {
-			Point pos = vehicleController.getPosition(vid);
-			String edge = vehicleController.getRoadID(vid);
-			double angle = vehicleController.getAngle(vid);
-			String type = vehicleController.getTypeID(vid);
-			double width = vehicleController.getWidth(vid);
-			double height = vehicleController.getHeight(vid);
-			double speed = vehicleController.getSpeed(vid);
-			double maxSpeed = vehicleController.getMaxSpeed(vid);
-			double acceleration = vehicleController.getAcceleration(vid);
-			double distance = vehicleController.getDistance(vid);
-			List<String> route = vehicleController.getRoute(vid);
+			List<String> allVehicleIds = vehicleController.getAllVehicleIds();
+			for (String vid : allVehicleIds) {
+				Point pos = vehicleController.getPosition(vid);
+				String edge = vehicleController.getRoadID(vid);
+				double angle = vehicleController.getAngle(vid);
+				String type = vehicleController.getTypeID(vid);
+				double width = vehicleController.getWidth(vid);
+				double height = vehicleController.getHeight(vid);
+				double speed = vehicleController.getSpeed(vid);
+				double maxSpeed = vehicleController.getMaxSpeed(vid);
+				double acceleration = vehicleController.getAcceleration(vid);
+				double distance = vehicleController.getDistance(vid);
+				List<String> route = vehicleController.getRoute(vid);
 
-			Vehicle v = new Vehicle(vid, pos, edge, type, angle, width, height, speed, maxSpeed, acceleration, distance,
-				route);
+				Vehicle v = new Vehicle(vid, pos, edge, type, angle, width, height, speed, maxSpeed, acceleration,
+					distance, route);
 
-			VehicleController.updateVehicleMap(v);
+				VehicleController.updateVehicleMap(v);
+			}
+			System.out.println("All enabled...");
+		} finally {
+			lock.unlock();
 		}
-
 		for (String tl : trafficLightController.getIDList()) {
 			String light_state = trafficLightController.getState(tl);
 			TrafficLightController.updateTrafficLightState(tl, light_state);

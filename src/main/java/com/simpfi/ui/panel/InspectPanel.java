@@ -127,13 +127,28 @@ public class InspectPanel extends Panel {
 
 			selectedVehicles.clear();
 			vehicleListModel.clear();
-
-			for (Vehicle v : VehicleController.getVehicles()) {
+			List<Vehicle> allVehicleList = null;
+			System.out.println("Inspect is locking");
+			App.lock.lock();
+			try {
+				allVehicleList = VehicleController.getVehicles().stream().map(Vehicle::new).toList();
+			} finally {
+				App.lock.unlock();
+			}
+			System.out.println("Inspect is unlocking");
+			System.out.println("TOTAL NUMBER OF ELEMENTS: " + allVehicleList.size());
+			for (Vehicle v : allVehicleList) {
 				if (v != null && v.getIsActive()) {
 					selectedVehicles.add(v);
 					vehicleListModel.addElement(v.getId());
+				} else if (v == null) {
+					System.out.println("Vehicle is null");
+				} else if (!v.getIsActive()) {
+					System.out.println("Vehicle is inactive");
 				}
 			}
+			System.out.println(selectedVehicles.size());
+			System.out.println(vehicleListModel.size());
 
 			if (!vehicleListModel.isEmpty()) {
 				vehicleList.setSelectionInterval(0, vehicleListModel.size() - 1);
@@ -153,7 +168,13 @@ public class InspectPanel extends Panel {
 			// simulate Select All
 			selectedVehicles.clear();
 			vehicleListModel.clear();
-			List<Vehicle> allVehicles = VehicleController.getVehicles();
+			List<Vehicle> allVehicles = null;
+			App.lock.lock();
+			try {
+				allVehicles = VehicleController.getVehicles().stream().map(Vehicle::new).toList();
+			} finally {
+				App.lock.unlock();
+			}
 			selectedVehicles.addAll(allVehicles);
 			for (Vehicle v : allVehicles) {
 				vehicleListModel.addElement(v.getId());
@@ -264,7 +285,12 @@ public class InspectPanel extends Panel {
 					file = new File(file.getAbsolutePath() + ".csv");
 				}
 				try {
-					VehicleCsvExporter.exportVehicles(VehicleController.getVehicles(), file);
+					App.lock.lock();
+					try {
+						VehicleCsvExporter.exportVehicles(VehicleController.getVehicles(), file);
+					} finally {
+						App.lock.unlock();
+					}
 					JOptionPane.showMessageDialog(this, "CSV file successfully exported.", "Export Complete",
 						JOptionPane.INFORMATION_MESSAGE);
 				} catch (Exception ex) {
@@ -289,7 +315,12 @@ public class InspectPanel extends Panel {
 					file = new File(file.getAbsolutePath() + ".pdf");
 				}
 				try {
-					VehiclePdfExporter.exportVehicles(VehicleController.getVehicles(), file);
+					App.lock.lock();
+					try {
+						VehiclePdfExporter.exportVehicles(VehicleController.getVehicles(), file);
+					} finally {
+						App.lock.unlock();
+					}
 					JOptionPane.showMessageDialog(this, "PDF report successfully exported.", "Export Complete",
 						JOptionPane.INFORMATION_MESSAGE);
 				} catch (Exception ex) {
@@ -463,7 +494,15 @@ public class InspectPanel extends Panel {
 		Vehicle nearest = null;
 		double bestDist = Double.MAX_VALUE;
 
-		for (Vehicle v : VehicleController.getVehicles()) {
+		List<Vehicle> allVehicleList = null;
+		App.lock.lock();
+		try {
+			allVehicleList = VehicleController.getVehicles().stream().map(Vehicle::new).toList();
+		} finally {
+			App.lock.unlock();
+		}
+
+		for (Vehicle v : allVehicleList) {
 			double dx = v.getPosition().getX() - x;
 			double dy = v.getPosition().getY() - y;
 			double dist = Math.sqrt(dx * dx + dy * dy);
@@ -790,12 +829,11 @@ public class InspectPanel extends Panel {
 		boolean includeCommercial, boolean activeOnly, double minDistance, double maxDistance, boolean congestedEdges,
 		int congestionThreshold) {
 		// Take a snapshot to avoid concurrent modification during simulation updates
+
 		List<Vehicle> snapshot = null;
 		App.lock.lock();
 		try {
-			snapshot = new ArrayList<>(VehicleController.getVehicles());
-		} catch (Exception e) {
-
+			snapshot = VehicleController.getVehicles().stream().map(Vehicle::new).toList();
 		} finally {
 			App.lock.unlock();
 		}

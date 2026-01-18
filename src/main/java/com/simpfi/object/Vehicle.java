@@ -81,7 +81,6 @@ public class Vehicle extends SumoObject implements Drawable {
 	 * @param height the height
 	 * @param speed  the speed
 	 */
-
 	public Vehicle(String id, Point point, String roadID, String type, double angle, double width, double height,
 		double speed, double maxSpeed, double acceleration, double distance, List<String> route) {
 		this.id = id;
@@ -110,6 +109,25 @@ public class Vehicle extends SumoObject implements Drawable {
 		}
 
 		isActive = false;
+	}
+
+	public Vehicle(Vehicle other) {
+		this.id = other.id;
+		this.position = other.position;
+		this.roadID = other.roadID;
+		this.angle = other.angle;
+		this.width = other.width;
+		this.height = other.height;
+		this.speed = other.speed;
+
+		this.type = other.type;
+
+		this.route = other.route;
+		this.maxSpeed = other.maxSpeed;
+		this.acceleration = other.acceleration;
+		this.distance = other.distance;
+
+		this.isActive = other.isActive;
 	}
 
 	/**

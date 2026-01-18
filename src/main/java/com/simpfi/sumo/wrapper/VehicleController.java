@@ -73,8 +73,9 @@ public class VehicleController {
 	 * Sets the speed of a specific vehicle in the simulation.
 	 * 
 	 * @param vId      vehicle ID
-	 * @param newSpeed the new speed value to assign to the vehicle 
-	 * @throws Exception if the command cannot be sent to SUMO or the simulation connection fails
+	 * @param newSpeed the new speed value to assign to the vehicle
+	 * @throws Exception if the command cannot be sent to SUMO or the simulation
+	 *                   connection fails
 	 */
 	public void setSpeed(String vId, double newSpeed) throws Exception {
 		connection.do_job_set(de.tudresden.sumo.cmd.Vehicle.setSpeed(vId, newSpeed));
@@ -198,10 +199,13 @@ public class VehicleController {
 	 * @return the vehicles list
 	 */
 	public static List<Vehicle> getVehicles() {
+		Map<String, Vehicle> mapSnapshot = vehicleMap;
+
 		List<Vehicle> vehicleList = new ArrayList<Vehicle>();
-		for (Map.Entry<String, Vehicle> entry : vehicleMap.entrySet()) {
+		for (Map.Entry<String, Vehicle> entry : mapSnapshot.entrySet()) {
 			vehicleList.add(entry.getValue());
 		}
+
 		return vehicleList;
 	}
 

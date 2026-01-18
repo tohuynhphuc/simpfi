@@ -7,6 +7,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -132,7 +133,15 @@ public class MapPanel extends Panel {
 	public void updateVehicleStates(int step) {
 		boolean blink = (step / 10) % 2 == 0; // blinking every 10 steps
 
-		for (Vehicle v : VehicleController.getVehicles()) {
+		List<Vehicle> allVehicleList = null;
+		App.lock.lock();
+		try {
+			allVehicleList = VehicleController.getVehicles().stream().map(Vehicle::new).toList();
+		} finally {
+			App.lock.unlock();
+		}
+
+		for (Vehicle v : allVehicleList) {
 			// Brake light if speed < 2
 			v.setBrake(v.getSpeed() < 2);
 
