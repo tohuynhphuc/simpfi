@@ -855,10 +855,12 @@ public class InspectPanel extends Panel {
                         typeAllowed = true;
                     }
 
-                    // Private vehicles = private cars that are not commercial
-                    if (includePrivate && typeId.contains("private")) {
+                    // Private vehicles = private cars that are NOT commercial (trucks/buses)
+                    if (includePrivate && typeId.contains("private") &&
+                            !(typeId.contains("truck") || typeId.contains("bus"))) {
                         typeAllowed = true;
                     }
+
 
                     if (!typeAllowed) return false;
 

@@ -152,9 +152,9 @@ public class VehiclePdfExporter {
             }
         }
 
-        renderer.setBaseItemLabelsVisible(true);
-        renderer.setBaseItemLabelFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
-        renderer.setBaseItemLabelPaint(Color.BLACK);
+        renderer.setDefaultItemLabelsVisible(true);
+        renderer.setDefaultItemLabelFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        renderer.setDefaultItemLabelPaint(Color.BLACK);
 
         plot.getDomainAxis().setTickLabelFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12));
         plot.getRangeAxis().setTickLabelFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
