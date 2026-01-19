@@ -1,5 +1,7 @@
 com.simpfi
 com.simpfi.config
+com.simpfi.exception
+com.simpfi.export
 com.simpfi.object
 com.simpfi.sumo.wrapper
 com.simpfi.ui
