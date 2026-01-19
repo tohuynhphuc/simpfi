@@ -94,3 +94,5 @@ conciseness and readability.
 - Right click the TraaS.jar file, the flatlaf-3.6.2.jar, jcommon-1.0.23.jar, and jfreechart-1.0.19.jar file and go to Build Path > Add to Build Path
 - Compile and run App.java
 - In order to change the map, go to `scr/main/java/com/simpfi/config/Constants.java` and replace the 3 path at the top of the file with your own configurations. We have also included another configuration that you can uncomment and comment the original files to use it.
+# Create Javadoc:
+ - In the terminal, run mvn javadoc:javadoc to generate the html file.
